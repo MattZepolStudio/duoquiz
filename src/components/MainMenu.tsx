@@ -35,6 +35,10 @@ interface MainMenuProps {
   isLoadingAi?: boolean;
   onOpenMultiplayer: () => void;
   urlRoomCode?: string;
+  savedRoomCode?: string | null;
+  onReconnectRoom?: () => void;
+  onClearSavedRoom?: () => void;
+  isReconnecting?: boolean;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
@@ -52,6 +56,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   isLoadingAi,
   onOpenMultiplayer,
   urlRoomCode,
+  savedRoomCode,
+  onReconnectRoom,
+  onClearSavedRoom,
+  isReconnecting,
 }) => {
   const [activeAvatarPicker, setActiveAvatarPicker] = useState<1 | 2 | null>(null);
   const [showNsfwNotice, setShowNsfwNotice] = useState<boolean>(false);
@@ -102,6 +110,65 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           </p>
         </div>
       </div>
+
+      {/* Resume Active Multiplayer Game Banner if session exists */}
+      {savedRoomCode && (
+        <div className="p-4 rounded-3xl bg-gradient-to-r from-rose-950/90 via-zinc-900 to-zinc-900 border-2 border-rose-500/60 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="w-11 h-11 rounded-2xl bg-rose-500/20 text-rose-300 flex items-center justify-center shrink-0 border border-rose-500/30 text-xl">
+              🔄
+            </div>
+            <div className="text-left flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-white">Partie en cours trouvée !</span>
+                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono text-[11px] font-extrabold border border-rose-500/30">
+                  {savedRoomCode}
+                </span>
+              </div>
+              <div className="text-[11px] text-zinc-300 mt-0.5">
+                Vous avez quitté par mégarde ? Reprenez sans perdre vos réponses ni vos scores !
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
+            {onClearSavedRoom && (
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playTap();
+                  onClearSavedRoom();
+                }}
+                className="px-3 py-2 rounded-xl text-zinc-400 hover:text-zinc-200 text-xs font-semibold hover:bg-zinc-800 transition-colors active:scale-95"
+              >
+                Ignorer
+              </button>
+            )}
+            {onReconnectRoom && (
+              <button
+                type="button"
+                disabled={isReconnecting}
+                onClick={() => {
+                  sound.playTap();
+                  onReconnectRoom();
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold text-xs shadow-md shadow-rose-950/50 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {isReconnecting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Reconnexion...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Reprendre la partie</span>
+                    <span>➜</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* URL Room Code Invitation Alert if present */}
       {urlRoomCode && (

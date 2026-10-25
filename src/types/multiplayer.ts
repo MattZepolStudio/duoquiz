@@ -39,6 +39,7 @@ export interface RoomState {
   p2AnsweredCount: number;
   currentTargetAnswer?: string;
   currentGuesserAnswer?: string;
+  targetAnswers?: string[]; // Sent only to target player for reconnection/answer restoration
   isCurrentAutoMatch?: boolean;
   matchDecisions: Record<number, boolean>;
   lastMancheScore: number;

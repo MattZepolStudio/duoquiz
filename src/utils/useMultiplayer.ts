@@ -17,12 +17,33 @@ export function useMultiplayer() {
       return null;
     }
   });
+  const [savedRoomCode, setSavedRoomCode] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('duoquiz_multi_room_code') || null;
+    } catch {
+      return null;
+    }
+  });
+
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
+  const [isReconnecting, setIsReconnecting] = useState<boolean>(false);
 
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<any>(null);
+  const isIntentionalLeaveRef = useRef<boolean>(false);
+  const roomCodeRef = useRef<string | null>(savedRoomCode);
+  const playerIdRef = useRef<string | null>(playerId);
+
+  // Keep refs synced
+  useEffect(() => {
+    roomCodeRef.current = roomState?.code || savedRoomCode;
+  }, [roomState?.code, savedRoomCode]);
+
+  useEffect(() => {
+    playerIdRef.current = playerId;
+  }, [playerId]);
 
   const getWsUrl = () => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -42,6 +63,7 @@ export function useMultiplayer() {
       ws.onopen = () => {
         setIsConnected(true);
         setIsConnecting(false);
+        setIsReconnecting(false);
         setErrorMessage(null);
         socketRef.current = ws;
         resolve(ws);
@@ -53,14 +75,34 @@ export function useMultiplayer() {
           if (msg.type === 'room_created' || msg.type === 'room_joined') {
             setRoomState(msg.roomState);
             setPlayerId(msg.playerId);
+            setSavedRoomCode(msg.code);
+            setIsReconnecting(false);
+            setErrorMessage(null);
             try {
               localStorage.setItem('duoquiz_multi_player_id', msg.playerId);
               localStorage.setItem('duoquiz_multi_room_code', msg.code);
+              if (msg.roomState.stage !== 'lobby') {
+                sessionStorage.setItem('duoquiz_multi_in_game', 'true');
+              }
             } catch {}
           } else if (msg.type === 'sync_state') {
             setRoomState(msg.roomState);
+            setIsReconnecting(false);
+            if (msg.roomState.stage !== 'lobby') {
+              try {
+                sessionStorage.setItem('duoquiz_multi_in_game', 'true');
+              } catch {}
+            }
           } else if (msg.type === 'error') {
             setErrorMessage(msg.message);
+            setIsReconnecting(false);
+            if (msg.message.toLowerCase().includes('introuvable') || msg.message.toLowerCase().includes('expiré')) {
+              try {
+                localStorage.removeItem('duoquiz_multi_room_code');
+                sessionStorage.removeItem('duoquiz_multi_in_game');
+              } catch {}
+              setSavedRoomCode(null);
+            }
           }
         } catch (err) {
           console.error('Error handling WebSocket message:', err);
@@ -69,6 +111,7 @@ export function useMultiplayer() {
 
       ws.onerror = () => {
         setIsConnecting(false);
+        setIsReconnecting(false);
         setErrorMessage('Impossible de contacter le serveur multijoueur.');
       };
 
@@ -76,6 +119,17 @@ export function useMultiplayer() {
         setIsConnected(false);
         setIsConnecting(false);
         socketRef.current = null;
+
+        // Auto-reconnect if connection dropped accidentally during an active game
+        const activeCode = roomCodeRef.current;
+        const activeId = playerIdRef.current;
+        if (activeCode && activeId && !isIntentionalLeaveRef.current) {
+          setIsReconnecting(true);
+          if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectSavedSession(activeCode, activeId);
+          }, 2000);
+        }
       };
     });
   }, []);
@@ -86,8 +140,54 @@ export function useMultiplayer() {
     }
   }, []);
 
+  const reconnectSavedSession = useCallback(
+    async (overrideCode?: string, overridePlayerId?: string): Promise<boolean> => {
+      const codeToUse = (overrideCode || savedRoomCode || '').trim().toUpperCase();
+      const idToUse = overridePlayerId || playerId;
+      if (!codeToUse) return false;
+
+      isIntentionalLeaveRef.current = false;
+      setIsReconnecting(true);
+      setErrorMessage(null);
+
+      try {
+        const ws = await connect();
+        ws.send(
+          JSON.stringify({
+            type: idToUse ? 'reconnect' : 'join_room',
+            code: codeToUse,
+            playerId: idToUse || undefined,
+            playerName: 'Moi',
+            playerAvatar: '🦊',
+          } as ClientMessage)
+        );
+        return true;
+      } catch (err) {
+        setIsReconnecting(false);
+        setErrorMessage('Erreur lors de la reconnexion au salon.');
+        return false;
+      }
+    },
+    [connect, savedRoomCode, playerId]
+  );
+
+  const clearSavedSession = useCallback(() => {
+    isIntentionalLeaveRef.current = true;
+    try {
+      localStorage.removeItem('duoquiz_multi_room_code');
+      sessionStorage.removeItem('duoquiz_multi_in_game');
+    } catch {}
+    setSavedRoomCode(null);
+    setRoomState(null);
+    setErrorMessage(null);
+    if (socketRef.current) {
+      socketRef.current.close();
+    }
+  }, []);
+
   const createRoom = useCallback(
     async (hostName: string, hostAvatar: string, config: RoomConfig) => {
+      isIntentionalLeaveRef.current = false;
       setErrorMessage(null);
       const ws = await connect();
       ws.send(
@@ -104,6 +204,7 @@ export function useMultiplayer() {
 
   const joinRoom = useCallback(
     async (code: string, playerName: string, playerAvatar: string) => {
+      isIntentionalLeaveRef.current = false;
       setErrorMessage(null);
       const ws = await connect();
       ws.send(
@@ -211,6 +312,10 @@ export function useMultiplayer() {
   );
 
   const leaveRoom = useCallback(() => {
+    isIntentionalLeaveRef.current = true;
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
     if (roomState) {
       sendMessage({
         type: 'leave_room',
@@ -220,7 +325,9 @@ export function useMultiplayer() {
     setRoomState(null);
     try {
       localStorage.removeItem('duoquiz_multi_room_code');
+      sessionStorage.removeItem('duoquiz_multi_in_game');
     } catch {}
+    setSavedRoomCode(null);
     if (socketRef.current) {
       socketRef.current.close();
     }
@@ -256,8 +363,10 @@ export function useMultiplayer() {
   return {
     roomState,
     playerId,
+    savedRoomCode,
     isConnected,
     isConnecting,
+    isReconnecting,
     errorMessage,
     setErrorMessage,
     isHost,
@@ -267,6 +376,8 @@ export function useMultiplayer() {
     partnerPlayer,
     createRoom,
     joinRoom,
+    reconnectSavedSession,
+    clearSavedSession,
     startGame,
     submitTargetAnswer,
     finishTargetSeries,

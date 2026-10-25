@@ -51,11 +51,22 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
   onStartGame,
   onBackToMenu,
 }) => {
-  // Check if room code was passed in URL query param
+  // Check if room code was passed in URL query param or saved from previous session
   const urlRoomCode = new URLSearchParams(window.location.search).get('room') || '';
+  const savedCode = (() => {
+    try {
+      return localStorage.getItem('duoquiz_multi_room_code') || '';
+    } catch {
+      return '';
+    }
+  })();
 
-  const [activeTab, setActiveTab] = useState<'create' | 'join'>(urlRoomCode ? 'join' : 'create');
-  const [joinCodeInput, setJoinCodeInput] = useState<string>(urlRoomCode.toUpperCase());
+  const [activeTab, setActiveTab] = useState<'create' | 'join'>(
+    urlRoomCode || savedCode ? 'join' : 'create'
+  );
+  const [joinCodeInput, setJoinCodeInput] = useState<string>(
+    (urlRoomCode || savedCode).toUpperCase()
+  );
   const [guestName, setGuestName] = useState<string>(player2.name || 'Mon Amour');
   const [guestAvatar, setGuestAvatar] = useState<string>(player2.avatar || '🐱');
   const [hostName, setHostName] = useState<string>(player1.name || 'Moi');

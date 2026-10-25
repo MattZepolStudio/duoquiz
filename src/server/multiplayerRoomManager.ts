@@ -146,6 +146,7 @@ export class MultiplayerRoomManager {
       p2AnsweredCount,
       currentTargetAnswer,
       currentGuesserAnswer,
+      targetAnswers: isTarget ? [...room.p1Answers] : undefined,
       isCurrentAutoMatch,
       matchDecisions: room.matchDecisions,
       lastMancheScore: room.lastMancheScore,
@@ -215,6 +216,48 @@ export class MultiplayerRoomManager {
         break;
       }
 
+      case 'reconnect': {
+        const cleanCode = msg.code.trim().toUpperCase();
+        const room = this.rooms.get(cleanCode);
+        if (!room) {
+          this.send(ws, { type: 'error', message: 'Salon introuvable ou expiré.' });
+          return;
+        }
+
+        if (room.player1.id === msg.playerId) {
+          room.player1.ws = ws;
+          room.player1.connected = true;
+          room.player1.lastActive = Date.now();
+          this.wsToPlayer.set(ws, { roomCode: cleanCode, playerId: msg.playerId });
+          this.send(ws, {
+            type: 'room_joined',
+            code: cleanCode,
+            playerId: msg.playerId,
+            roomState: this.getClientRoomState(room, msg.playerId),
+          });
+          this.syncRoom(room);
+          return;
+        }
+
+        if (room.player2?.id === msg.playerId) {
+          room.player2.ws = ws;
+          room.player2.connected = true;
+          room.player2.lastActive = Date.now();
+          this.wsToPlayer.set(ws, { roomCode: cleanCode, playerId: msg.playerId });
+          this.send(ws, {
+            type: 'room_joined',
+            code: cleanCode,
+            playerId: msg.playerId,
+            roomState: this.getClientRoomState(room, msg.playerId),
+          });
+          this.syncRoom(room);
+          return;
+        }
+
+        this.send(ws, { type: 'error', message: 'Session introuvable dans ce salon.' });
+        break;
+      }
+
       case 'join_room': {
         const cleanCode = msg.code.trim().toUpperCase();
         const room = this.rooms.get(cleanCode);
@@ -224,10 +267,11 @@ export class MultiplayerRoomManager {
           return;
         }
 
-        // Reconnection check
+        // 1. Exact Reconnection check by playerId
         if (msg.playerId && room.player1.id === msg.playerId) {
           room.player1.ws = ws;
           room.player1.connected = true;
+          room.player1.lastActive = Date.now();
           this.wsToPlayer.set(ws, { roomCode: cleanCode, playerId: msg.playerId });
           this.send(ws, {
             type: 'room_joined',
@@ -242,6 +286,7 @@ export class MultiplayerRoomManager {
         if (msg.playerId && room.player2?.id === msg.playerId) {
           room.player2.ws = ws;
           room.player2.connected = true;
+          room.player2.lastActive = Date.now();
           this.wsToPlayer.set(ws, { roomCode: cleanCode, playerId: msg.playerId });
           this.send(ws, {
             type: 'room_joined',
@@ -253,7 +298,49 @@ export class MultiplayerRoomManager {
           return;
         }
 
-        // New guest joining
+        // 2. Fallback reconnection for active in-progress game if a player got disconnected
+        if (room.stage !== 'lobby') {
+          // If player 2 was disconnected, re-attach guest
+          if (room.player2 && !room.player2.connected) {
+            room.player2.ws = ws;
+            room.player2.connected = true;
+            room.player2.lastActive = Date.now();
+            if (msg.playerName) room.player2.name = msg.playerName;
+            if (msg.playerAvatar) room.player2.avatar = msg.playerAvatar;
+            this.wsToPlayer.set(ws, { roomCode: cleanCode, playerId: room.player2.id });
+            this.send(ws, {
+              type: 'room_joined',
+              code: cleanCode,
+              playerId: room.player2.id,
+              roomState: this.getClientRoomState(room, room.player2.id),
+            });
+            this.syncRoom(room);
+            return;
+          }
+
+          // If player 1 was disconnected, re-attach host
+          if (!room.player1.connected) {
+            room.player1.ws = ws;
+            room.player1.connected = true;
+            room.player1.lastActive = Date.now();
+            if (msg.playerName) room.player1.name = msg.playerName;
+            if (msg.playerAvatar) room.player1.avatar = msg.playerAvatar;
+            this.wsToPlayer.set(ws, { roomCode: cleanCode, playerId: room.player1.id });
+            this.send(ws, {
+              type: 'room_joined',
+              code: cleanCode,
+              playerId: room.player1.id,
+              roomState: this.getClientRoomState(room, room.player1.id),
+            });
+            this.syncRoom(room);
+            return;
+          }
+
+          this.send(ws, { type: 'error', message: 'Cette partie est déjà en cours avec 2 joueurs.' });
+          return;
+        }
+
+        // 3. New guest joining in lobby
         if (room.player2 && room.player2.connected) {
           this.send(ws, { type: 'error', message: 'Ce salon est déjà complet (2/2 joueurs).' });
           return;

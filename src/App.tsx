@@ -73,13 +73,33 @@ export default function App() {
   const multi = useMultiplayer();
   const urlRoomCode = new URLSearchParams(window.location.search).get('room') || '';
 
-  // Auto-switch to multiplayer setup if opened via room link / QR code
+  // Auto-switch to multiplayer or auto-reconnect if returning from accidental tab close/refresh
   useEffect(() => {
     initAppUrl();
     if (urlRoomCode) {
       setStage('multiplayer_setup');
+    } else {
+      const wasInGame = sessionStorage.getItem('duoquiz_multi_in_game') === 'true';
+      if (wasInGame && multi.savedRoomCode) {
+        multi.reconnectSavedSession();
+      }
     }
-  }, [urlRoomCode]);
+  }, [urlRoomCode, multi.savedRoomCode]);
+
+  // Auto-restore target answers and advance to first unanswered question when reconnecting to p1_series
+  useEffect(() => {
+    if (multi.roomState && multi.roomState.stage === 'p1_series' && multi.isTarget) {
+      if (multi.roomState.targetAnswers && multi.roomState.targetAnswers.length > 0) {
+        setP1Answers(multi.roomState.targetAnswers);
+        const firstUnanswered = multi.roomState.targetAnswers.findIndex(
+          (ans) => !ans || ans.trim() === ''
+        );
+        if (firstUnanswered !== -1) {
+          setCurrentQuestionIndex(firstUnanswered);
+        }
+      }
+    }
+  }, [multi.roomState?.stage, multi.roomState?.targetAnswers, multi.isTarget]);
 
   // Save player nicknames to localStorage
   useEffect(() => {
@@ -578,6 +598,35 @@ export default function App() {
 
       {/* Main Content Viewport */}
       <main className="flex-1 flex flex-col justify-center items-center w-full">
+        {/* Partner Disconnected Warning in Multiplayer */}
+        {isMultiActive && multi.partnerPlayer && !multi.partnerPlayer.connected && (
+          <div className="w-full max-w-lg px-4 pt-2 animate-fade-in">
+            <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center gap-3 text-amber-200 text-xs shadow-lg animate-pulse">
+              <span className="text-xl">⚠️</span>
+              <div className="flex-1 text-left">
+                <div className="font-bold text-white">
+                  {multi.partnerPlayer.name} a quitté ou a un souci de connexion.
+                </div>
+                <div className="text-[11px] text-amber-300/90 mt-0.5">
+                  La partie reste sauvegardée et reprendra dès son retour !
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Local Reconnecting Banner */}
+        {multi.isReconnecting && (
+          <div className="w-full max-w-lg px-4 pt-2 animate-fade-in">
+            <div className="p-3 rounded-2xl bg-rose-500/15 border border-rose-500/40 flex items-center gap-3 text-rose-200 text-xs shadow-lg">
+              <div className="w-4 h-4 border-2 border-rose-400 border-t-transparent rounded-full animate-spin shrink-0" />
+              <div className="flex-1 font-medium text-left">
+                Reconnexion automatique à votre salon multijoueur...
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* MULTIPLAYER FLOW (Setup & Lobby only — hidden once game begins) */}
         {!isMultiActive && (stage === 'multiplayer_setup' || (multi.roomState && multi.roomState.stage === 'lobby')) && (
           <MultiplayerSetupScreen
@@ -788,6 +837,10 @@ export default function App() {
                 isLoadingAi={isLoadingAi}
                 onOpenMultiplayer={() => setStage('multiplayer_setup')}
                 urlRoomCode={urlRoomCode}
+                savedRoomCode={multi.savedRoomCode}
+                onReconnectRoom={() => multi.reconnectSavedSession()}
+                onClearSavedRoom={() => multi.clearSavedSession()}
+                isReconnecting={multi.isReconnecting}
               />
             )}
 
