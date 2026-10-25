@@ -69,22 +69,22 @@ export const RevealCard: React.FC<RevealCardProps> = ({
   );
 
   return (
-    <div className="flex flex-col justify-between min-h-[calc(100vh-80px)] max-w-lg mx-auto w-full px-4 py-4 animate-fade-in text-center">
+    <div className="flex flex-col justify-between h-full max-h-full max-w-lg mx-auto w-full px-3 py-1.5 sm:px-4 sm:py-2.5 animate-fade-in text-center overflow-hidden select-none">
       {/* Top Status */}
-      <div className="space-y-2">
+      <div className="shrink-0 space-y-1">
         <div className="flex items-center justify-between">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-300">
-            <MessageCircle className="w-3.5 h-3.5 text-rose-400" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-semibold text-zinc-300">
+            <MessageCircle className="w-3 h-3 text-rose-400" />
             <span>Débrief à deux</span>
           </div>
 
-          <span className="text-xs font-bold text-zinc-400 tabular-nums px-2.5 py-1 bg-zinc-900/80 rounded-full border border-zinc-800">
+          <span className="text-[11px] font-bold text-zinc-400 tabular-nums px-2 py-0.5 bg-zinc-900/80 rounded-full border border-zinc-800">
             Question {currentIndex + 1} / {totalCount}
           </span>
         </div>
 
         {/* Linear progress bar */}
-        <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-zinc-900 h-1 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300"
             style={{ width: `${((currentIndex + 1) / totalCount) * 100}%` }}
@@ -92,16 +92,16 @@ export const RevealCard: React.FC<RevealCardProps> = ({
         </div>
 
         {/* Question Reminder */}
-        <p className="text-xs text-zinc-300 font-semibold max-w-xs mx-auto pt-1">
+        <p className="text-[11px] sm:text-xs text-zinc-300 font-semibold max-w-xs mx-auto pt-0.5 line-clamp-2">
           « {displayedQuestionText} »
         </p>
       </div>
 
       {/* Main Reveal Face-Off Cards */}
-      <div className="my-auto space-y-4">
+      <div className="flex-1 min-h-0 flex flex-col justify-center space-y-2 sm:space-y-3 my-1">
         {/* Match / Mismatch Banner */}
         <div
-          className={`p-4 rounded-3xl border flex items-center justify-center gap-2.5 shadow-lg ${
+          className={`p-2.5 sm:p-3 rounded-2xl border flex items-center justify-center gap-2 shadow-md ${
             scoreAwarded
               ? 'bg-gradient-to-r from-emerald-950/60 to-emerald-900/40 border-emerald-500/50 text-emerald-200'
               : 'bg-gradient-to-r from-zinc-900 to-zinc-950 border-zinc-800 text-zinc-300'
@@ -109,28 +109,28 @@ export const RevealCard: React.FC<RevealCardProps> = ({
         >
           {scoreAwarded ? (
             <>
-              <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40">
-                <Check className="w-5 h-5 stroke-[3]" />
+              <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40 shrink-0">
+                <Check className="w-4 h-4 stroke-[3]" />
               </div>
               <div className="text-left">
-                <span className="font-display font-bold text-base block text-white">
+                <span className="font-display font-bold text-xs sm:text-sm block text-white">
                   C'est un Match parfait ! 🎉
                 </span>
-                <span className="text-xs text-emerald-300">
+                <span className="text-[11px] text-emerald-300">
                   +1 point pour {guesserPlayer.name} !
                 </span>
               </div>
             </>
           ) : (
             <>
-              <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/40">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-7 h-7 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/40 shrink-0">
+                <Sparkles className="w-4 h-4" />
               </div>
               <div className="text-left">
-                <span className="font-display font-bold text-base block text-white">
+                <span className="font-display font-bold text-xs sm:text-sm block text-white">
                   Pas tout à fait pareil ! 🤔
                 </span>
-                <span className="text-xs text-zinc-400">
+                <span className="text-[10px] text-zinc-400">
                   Débattez ou accordez le point si vous êtes d'accord.
                 </span>
               </div>
@@ -139,41 +139,41 @@ export const RevealCard: React.FC<RevealCardProps> = ({
         </div>
 
         {/* Comparison grid */}
-        <div className="grid grid-cols-2 gap-3 text-left">
+        <div className="grid grid-cols-2 gap-2 text-left">
           {/* Target Answer */}
-          <div className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 flex flex-col justify-between">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-400 mb-2">
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-rose-400 mb-1">
                 <span>{targetPlayer.avatar}</span>
                 <span className="truncate">{targetPlayer.name} a répondu :</span>
               </div>
-              <p className="text-sm font-bold text-white leading-snug">
+              <p className="text-xs sm:text-sm font-bold text-white leading-snug line-clamp-3">
                 « {targetAnswer} »
               </p>
             </div>
-            <span className="text-[10px] text-zinc-500 mt-3 block">
+            <span className="text-[9px] text-zinc-500 mt-2 block">
               Réponse originale
             </span>
           </div>
 
           {/* Guesser Answer */}
           <div
-            className={`p-4 rounded-2xl border flex flex-col justify-between transition-colors ${
+            className={`p-2.5 sm:p-3 rounded-xl border flex flex-col justify-between transition-colors ${
               scoreAwarded
                 ? 'bg-emerald-950/30 border-emerald-500/40'
                 : 'bg-zinc-900/90 border-zinc-800'
             }`}
           >
             <div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-pink-400 mb-2">
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-pink-400 mb-1">
                 <span>{guesserPlayer.avatar}</span>
                 <span className="truncate">{guesserPlayer.name} a deviné :</span>
               </div>
-              <p className="text-sm font-bold text-white leading-snug">
+              <p className="text-xs sm:text-sm font-bold text-white leading-snug line-clamp-3">
                 « {guesserAnswer} »
               </p>
             </div>
-            <span className="text-[10px] text-zinc-500 mt-3 block">
+            <span className="text-[9px] text-zinc-500 mt-2 block">
               Pronostic
             </span>
           </div>
@@ -181,7 +181,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
 
         {/* Manual Override Button if not auto match */}
         {!isAutoMatch && (
-          <div className="pt-2">
+          <div className="pt-0.5">
             {!scoreAwarded ? (
               <button
                 type="button"
@@ -195,9 +195,9 @@ export const RevealCard: React.FC<RevealCardProps> = ({
                   });
                   onConfirmMatch();
                 }}
-                className="w-full py-2.5 px-4 rounded-xl bg-zinc-900 border border-zinc-700/80 text-xs font-semibold text-zinc-300 hover:text-white hover:border-emerald-500/50 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                className="w-full py-1.5 px-3 rounded-xl bg-zinc-900 border border-zinc-700/80 text-[11px] font-semibold text-zinc-300 hover:text-white hover:border-emerald-500/50 flex items-center justify-center gap-1.5 active:scale-95 transition-all"
               >
-                <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
+                <ThumbsUp className="w-3 h-3 text-emerald-400" />
                 <span>On était d'accord sur le fond ! (Accorder le point)</span>
               </button>
             ) : (
@@ -207,7 +207,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
                   sound.playTap();
                   onRejectMatch();
                 }}
-                className="text-xs text-zinc-500 hover:text-zinc-400 underline"
+                className="text-[11px] text-zinc-500 hover:text-zinc-400 underline"
               >
                 Annuler le point accordé
               </button>
@@ -217,7 +217,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
       </div>
 
       {/* Next Step CTA */}
-      <div className="pt-4">
+      <div className="shrink-0 pt-1 pb-1">
         <button
           type="button"
           onClick={() => {
@@ -225,17 +225,17 @@ export const RevealCard: React.FC<RevealCardProps> = ({
             sound.vibrate(15);
             onNextRound();
           }}
-          className="w-full h-14 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-display font-bold text-base shadow-xl shadow-rose-950/40 hover:brightness-105 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+          className="w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-display font-bold text-xs sm:text-sm shadow-xl shadow-rose-950/40 hover:brightness-105 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
         >
           {isLastRound ? (
             <>
-              <Trophy className="w-5 h-5 text-amber-300" />
+              <Trophy className="w-4 h-4 text-amber-300" />
               <span>Voir le score de la manche</span>
             </>
           ) : (
             <>
               <span>Question suivante</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>

@@ -570,8 +570,12 @@ export default function App() {
     ? currentDecision !== false
     : currentDecision === true;
 
+  const isQuestionPhase = isMultiActive
+    ? multi.roomState?.stage === 'p1_series' || multi.roomState?.stage === 'p2_turn' || multi.roomState?.stage === 'reveal_turn'
+    : stage === 'p1_series' || stage === 'p2_turn' || stage === 'reveal_turn';
+
   return (
-    <div className="min-h-full flex flex-col bg-zinc-950 text-zinc-100 selection:bg-rose-500 selection:text-white">
+    <div className={`h-[100dvh] max-h-[100dvh] flex flex-col bg-zinc-950 text-zinc-100 selection:bg-rose-500 selection:text-white ${isQuestionPhase ? 'overflow-hidden' : 'overflow-y-auto'}`}>
       {/* Top Header Bar */}
       <TopNav
         soundEnabled={soundEnabled}
@@ -616,7 +620,7 @@ export default function App() {
       />
 
       {/* Main Content Viewport */}
-      <main className="flex-1 flex flex-col justify-center items-center w-full">
+      <main className={`flex-1 min-h-0 flex flex-col items-center w-full ${isQuestionPhase ? 'overflow-hidden justify-between' : 'overflow-y-auto justify-start'}`}>
         {/* Partner Disconnected Warning in Multiplayer */}
         {isMultiActive && multi.partnerPlayer && !multi.partnerPlayer.connected && (
           <div className="w-full max-w-lg px-4 pt-2 animate-fade-in">
