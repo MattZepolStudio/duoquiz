@@ -551,7 +551,11 @@ export default function App() {
         currentRound={
           isMultiActive
             ? multi.roomState?.stage !== 'summary'
-              ? (multi.roomState?.currentQuestionIndex || 0) + 1
+              ? multi.roomState?.stage === 'p1_series'
+                ? multi.isTarget
+                  ? currentQuestionIndex + 1
+                  : Math.min(multi.roomState?.totalQuestions || 5, (multi.roomState?.p1AnsweredCount || 0) + 1)
+                : (multi.roomState?.currentQuestionIndex || 0) + 1
               : undefined
             : stage !== 'menu' && stage !== 'summary' && stage !== 'multiplayer_setup'
             ? currentQuestionIndex + 1
@@ -574,8 +578,8 @@ export default function App() {
 
       {/* Main Content Viewport */}
       <main className="flex-1 flex flex-col justify-center items-center w-full">
-        {/* MULTIPLAYER FLOW */}
-        {(stage === 'multiplayer_setup' || (multi.roomState && multi.roomState.stage === 'lobby')) && (
+        {/* MULTIPLAYER FLOW (Setup & Lobby only — hidden once game begins) */}
+        {!isMultiActive && (stage === 'multiplayer_setup' || (multi.roomState && multi.roomState.stage === 'lobby')) && (
           <MultiplayerSetupScreen
             player1={player1}
             player2={player2}

@@ -138,6 +138,11 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
     onJoinRoom(joinCodeInput.trim().toUpperCase(), guestName, guestAvatar);
   };
 
+  // If a game is active in this room, do not render setup screen
+  if (roomState && roomState.stage !== 'lobby') {
+    return null;
+  }
+
   // If room is already created and in lobby state
   if (roomState && roomState.stage === 'lobby') {
     const isBothConnected = roomState.player1.connected && !!roomState.player2?.connected;
