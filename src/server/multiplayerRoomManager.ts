@@ -392,7 +392,32 @@ export class MultiplayerRoomManager {
         if (!room) return;
 
         room.p1Answers[msg.questionIndex] = msg.answer;
+        if (msg.updatedOptions && room.questions[msg.questionIndex]) {
+          room.questions[msg.questionIndex].options = [...msg.updatedOptions];
+        }
         this.syncRoom(room);
+        break;
+      }
+
+      case 'update_question_options': {
+        const room = this.rooms.get(msg.code);
+        if (!room) return;
+
+        if (room.questions[msg.questionIndex]) {
+          room.questions[msg.questionIndex].options = [...msg.options];
+          this.syncRoom(room);
+        }
+        break;
+      }
+
+      case 'replace_question': {
+        const room = this.rooms.get(msg.code);
+        if (!room) return;
+
+        if (room.questions[msg.questionIndex]) {
+          room.questions[msg.questionIndex] = msg.question;
+          this.syncRoom(room);
+        }
         break;
       }
 

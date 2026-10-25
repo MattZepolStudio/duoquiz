@@ -310,6 +310,25 @@ export default function App() {
     }
   };
 
+  // Change difficulty of a question in Multiplayer mode
+  const handleMultiplayerChangeQuestionDifficulty = (newDiff: DifficultyLevel) => {
+    if (!multi.roomState) return;
+    const currentQ = multi.roomState.questions[currentQuestionIndex];
+    if (!currentQ) return;
+
+    const usedInCurrentGame = new Set(multi.roomState.questions.map((g) => g.id));
+    const { questions: replacementList } = buildUniqueQuestionList(
+      1,
+      usedInCurrentGame,
+      newDiff,
+      multi.roomState.config.selectedCategories
+    );
+
+    if (replacementList.length > 0) {
+      multi.replaceQuestion(currentQuestionIndex, replacementList[0]);
+    }
+  };
+
   // Target player advances through their secret questions
   const handleTargetNext = (answer: string, updatedOptions?: string[]) => {
     const updated = [...p1Answers];
@@ -667,11 +686,14 @@ export default function App() {
                     otherPlayer={multi.partnerPlayer || player2}
                     isGuesser={false}
                     initialAnswer={p1Answers[currentQuestionIndex] || ''}
-                    onNextQuestion={(answer) => {
+                    onOptionsChange={(newOptions) => {
+                      multi.updateQuestionOptions(currentQuestionIndex, newOptions);
+                    }}
+                    onNextQuestion={(answer, updatedOptions) => {
                       const updated = [...p1Answers];
                       updated[currentQuestionIndex] = answer;
                       setP1Answers(updated);
-                      multi.submitTargetAnswer(currentQuestionIndex, answer);
+                      multi.submitTargetAnswer(currentQuestionIndex, answer, updatedOptions);
                       if (currentQuestionIndex < multi.roomState!.totalQuestions - 1) {
                         setCurrentQuestionIndex((prev) => prev + 1);
                       } else {
@@ -682,7 +704,7 @@ export default function App() {
                     onPrevQuestion={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
                     canGoPrev={currentQuestionIndex > 0}
                     currentDifficulty={multi.roomState.questions[currentQuestionIndex]?.difficulty || 'medium'}
-                    onChangeDifficulty={() => {}}
+                    onChangeDifficulty={handleMultiplayerChangeQuestionDifficulty}
                   />
                 ) : (
                   <MultiplayerWaitingScreen
@@ -710,7 +732,13 @@ export default function App() {
                     otherPlayer={multi.partnerPlayer || player1}
                     isGuesser={true}
                     initialAnswer=""
-                    onNextQuestion={(answer) => {
+                    onOptionsChange={(newOptions) => {
+                      multi.updateQuestionOptions(multi.roomState!.currentQuestionIndex, newOptions);
+                    }}
+                    onNextQuestion={(answer, updatedOptions) => {
+                      if (updatedOptions) {
+                        multi.updateQuestionOptions(multi.roomState!.currentQuestionIndex, updatedOptions);
+                      }
                       multi.submitGuesserAnswer(multi.roomState!.currentQuestionIndex, answer);
                     }}
                     onPrevQuestion={() => {}}

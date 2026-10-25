@@ -54,9 +54,11 @@ export type ClientMessage =
   | { type: 'reconnect'; code: string; playerId: string }
   | { type: 'update_config'; code: string; config: Partial<RoomConfig> }
   | { type: 'start_game'; code: string; questions: Question[] }
-  | { type: 'submit_target_answer'; code: string; questionIndex: number; answer: string }
+  | { type: 'submit_target_answer'; code: string; questionIndex: number; answer: string; updatedOptions?: string[] }
   | { type: 'finish_target_series'; code: string }
   | { type: 'submit_guesser_answer'; code: string; questionIndex: number; answer: string }
+  | { type: 'update_question_options'; code: string; questionIndex: number; options: string[] }
+  | { type: 'replace_question'; code: string; questionIndex: number; question: Question }
   | { type: 'resolve_match'; code: string; questionIndex: number; isMatch: boolean }
   | { type: 'next_reveal_or_question'; code: string }
   | { type: 'start_next_manche'; code: string; questions: Question[] }

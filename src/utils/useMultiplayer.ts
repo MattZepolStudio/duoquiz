@@ -233,13 +233,40 @@ export function useMultiplayer() {
   );
 
   const submitTargetAnswer = useCallback(
-    (questionIndex: number, answer: string) => {
+    (questionIndex: number, answer: string, updatedOptions?: string[]) => {
       if (!roomState) return;
       sendMessage({
         type: 'submit_target_answer',
         code: roomState.code,
         questionIndex,
         answer,
+        updatedOptions,
+      });
+    },
+    [roomState, sendMessage]
+  );
+
+  const updateQuestionOptions = useCallback(
+    (questionIndex: number, options: string[]) => {
+      if (!roomState) return;
+      sendMessage({
+        type: 'update_question_options',
+        code: roomState.code,
+        questionIndex,
+        options,
+      });
+    },
+    [roomState, sendMessage]
+  );
+
+  const replaceQuestion = useCallback(
+    (questionIndex: number, question: Question) => {
+      if (!roomState) return;
+      sendMessage({
+        type: 'replace_question',
+        code: roomState.code,
+        questionIndex,
+        question,
       });
     },
     [roomState, sendMessage]
@@ -380,6 +407,8 @@ export function useMultiplayer() {
     clearSavedSession,
     startGame,
     submitTargetAnswer,
+    updateQuestionOptions,
+    replaceQuestion,
     finishTargetSeries,
     submitGuesserAnswer,
     resolveMatch,

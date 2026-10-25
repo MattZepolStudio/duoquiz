@@ -30,6 +30,7 @@ interface QuestionCardProps {
   canGoPrev: boolean;
   currentDifficulty: DifficultyLevel;
   onChangeDifficulty: (newDiff: DifficultyLevel) => void;
+  onOptionsChange?: (updatedOptions: string[]) => void;
 }
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -45,6 +46,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   canGoPrev,
   currentDifficulty,
   onChangeDifficulty,
+  onOptionsChange,
 }) => {
   // 4 option cards
   const [options, setOptions] = useState<string[]>(question.options);
@@ -96,6 +98,9 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     setSelectedAnswer(trimmed);
     setEditingIndex(null);
     setCustomInputValue('');
+    if (onOptionsChange) {
+      onOptionsChange(updated);
+    }
   };
 
   const handleStartMic = (e: React.MouseEvent) => {
