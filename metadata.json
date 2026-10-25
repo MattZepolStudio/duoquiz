@@ -1,0 +1,6 @@
+{
+  "name": "DuoQuiz - Le Jeu de Couple",
+  "description": "Le jeu de quiz complice pour couples sur smartphone : devinez les souvenirs, goûts et secrets coquins de votre partenaire !",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
