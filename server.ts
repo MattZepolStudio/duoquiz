@@ -41,6 +41,48 @@ async function startServer() {
     });
   }
 
+  // Resilient multi-model Gemini caller with automatic fallback
+  async function generateWithFallback(
+    prompt: string,
+    responseMimeType: string = 'application/json',
+    temperature: number = 0.8
+  ): Promise<string> {
+    if (!ai) throw new Error('Gemini API non configurée');
+    // Prefer gemini-3.1-flash-lite for ultra-fast response, fallback to gemini-3.8-flash
+    const models = ['gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+    let lastError: any = null;
+
+    for (const model of models) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            responseMimeType,
+            temperature,
+          },
+        });
+        if (response.text) {
+          return response.text;
+        }
+      } catch (err: any) {
+        console.warn(`[Gemini] Model ${model} failed, trying next fallback:`, err.message || err);
+        lastError = err;
+      }
+    }
+    throw lastError || new Error('All Gemini models failed');
+  }
+
+  // API Route: Check Gemini AI Configuration Status
+  app.get('/api/gemini/status', (req, res) => {
+    res.json({
+      configured: !!ai,
+      message: ai
+        ? 'Gemini API connectée et opérationnelle.'
+        : 'GEMINI_API_KEY non définie sur le serveur d\'hébergement.',
+    });
+  });
+
   // API Route: Generate Custom Couple Questions
   app.post('/api/gemini/generate-questions', async (req, res) => {
     try {
@@ -80,16 +122,7 @@ Renvoie UNIQUEMENT un tableau JSON strict :
   }
 ]`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          temperature: 0.8,
-        },
-      });
-
-      const responseText = response.text || '[]';
+      const responseText = await generateWithFallback(prompt, 'application/json', 0.8);
       const parsed = JSON.parse(responseText.trim());
       return res.json({ questions: parsed });
     } catch (error: any) {
@@ -134,15 +167,7 @@ Renvoie UNIQUEMENT un JSON :
   "loveChallenge": "..."
 }`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-        },
-      });
-
-      const responseText = response.text || '{}';
+      const responseText = await generateWithFallback(prompt, 'application/json', 0.7);
       return res.json(JSON.parse(responseText.trim()));
     } catch (error: any) {
       console.error('Error generating verdict:', error);
