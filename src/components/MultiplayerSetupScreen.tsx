@@ -14,8 +14,7 @@ import {
   Smartphone,
   ShieldCheck,
   Heart,
-  Globe,
-  ExternalLink
+  Globe
 } from 'lucide-react';
 import { CategoryId, DifficultyLevel, Player } from '../types/quiz';
 import { RoomConfig, RoomState } from '../types/multiplayer';
@@ -182,14 +181,10 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
 
         {/* Big Code Card with QR Code */}
         <div className="rounded-3xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-rose-950/40 border border-rose-500/30 p-5 shadow-xl text-center space-y-4">
-          <div className="flex flex-wrap items-center justify-center gap-2">
+          <div className="flex items-center justify-center">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold">
               <Smartphone className="w-3.5 h-3.5" />
               <span>Mode 2 Téléphones</span>
-            </div>
-            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300 text-[11px] font-semibold border border-zinc-700">
-              <Globe className="w-3 h-3 text-rose-400" />
-              <span>Environnement AI Studio</span>
             </div>
           </div>
 
@@ -243,59 +238,23 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
               {publicUrlString || getPublicRoomUrl(roomState.code)}
             </div>
 
-            <div className="flex gap-2">
+            <div>
               <button
                 type="button"
                 onClick={handleShareLink}
-                className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-rose-500/20 to-pink-500/20 hover:from-rose-500/30 hover:to-pink-500/30 border border-rose-500/40 text-rose-200 text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-rose-500/20 to-pink-500/20 hover:from-rose-500/30 hover:to-pink-500/30 border border-rose-500/40 text-rose-200 text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
               >
                 {copiedLink ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-emerald-300">Lien copié !</span>
+                    <span className="text-emerald-300">Lien copié dans le presse-papier !</span>
                   </>
                 ) : (
                   <>
                     <Share2 className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Envoyer (WhatsApp / SMS)</span>
+                    <span>Envoyer le lien (WhatsApp / SMS)</span>
                   </>
                 )}
-              </button>
-
-              <a
-                href={publicUrlString || getPublicRoomUrl(roomState.code)}
-                target="_blank"
-                rel="noreferrer"
-                className="py-2 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
-                title="Tester dans un nouvel onglet"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Tester 2e joueur</span>
-              </a>
-            </div>
-          </div>
-
-          {/* AI Studio Info Box */}
-          <div className="text-[11px] text-zinc-300 bg-zinc-950/70 p-3 rounded-2xl border border-rose-500/20 text-left space-y-1.5 leading-relaxed">
-            <div className="font-bold text-rose-300 flex items-center gap-1.5">
-              <span>💡 Pour tester sur 2 écrans dans AI Studio :</span>
-            </div>
-            <p className="text-zinc-400">
-              • <strong>Sur le 2e téléphone :</strong> Ouvrez Chrome/Safari avec votre compte Google connecté (sécurité de test Google).
-            </p>
-            <p className="text-zinc-400">
-              • <strong>Sur votre ordinateur :</strong> Cliquez sur <strong className="text-zinc-200">« Tester 2e joueur »</strong> ci-dessus pour ouvrir un 2e onglet et tester la synchronisation en direct !
-            </p>
-            <div className="pt-1.5 border-t border-zinc-800/80">
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playTap();
-                  onBackToMenu();
-                }}
-                className="w-full py-1.5 px-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 font-semibold text-center flex items-center justify-center gap-1.5"
-              >
-                <span>✨ Préférer le Mode 1 Téléphone ("Passe ton téléphone")</span>
               </button>
             </div>
           </div>
