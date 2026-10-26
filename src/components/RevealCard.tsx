@@ -69,7 +69,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
   );
 
   return (
-    <div className="flex flex-col justify-between h-full max-h-full max-w-lg mx-auto w-full px-3 py-1.5 sm:px-4 sm:py-2.5 animate-fade-in text-center overflow-hidden select-none">
+    <div className="flex flex-col justify-between h-full max-h-full max-w-lg mx-auto w-full px-4 pt-2 pb-5 sm:pb-7 animate-fade-in text-center overflow-hidden select-none">
       {/* Top Status */}
       <div className="shrink-0 space-y-1">
         <div className="flex items-center justify-between">
@@ -217,7 +217,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
       </div>
 
       {/* Next Step CTA */}
-      <div className="shrink-0 pt-1 pb-1">
+      <div className="shrink-0 pt-2">
         <button
           type="button"
           onClick={() => {
@@ -225,7 +225,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
             sound.vibrate(15);
             onNextRound();
           }}
-          className="w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-display font-bold text-xs sm:text-sm shadow-xl shadow-rose-950/40 hover:brightness-105 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+          className="w-full h-12 sm:h-13 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-display font-bold text-sm shadow-xl shadow-rose-950/40 hover:brightness-105 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
         >
           {isLastRound ? (
             <>

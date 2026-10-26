@@ -620,7 +620,7 @@ export default function App() {
       />
 
       {/* Main Content Viewport */}
-      <main className={`flex-1 min-h-0 flex flex-col items-center w-full ${isQuestionPhase ? 'overflow-hidden justify-between' : 'overflow-y-auto justify-start'}`}>
+      <main className={`flex-1 min-h-0 flex flex-col items-center w-full ${isQuestionPhase ? 'overflow-hidden justify-start' : 'overflow-y-auto justify-start'}`}>
         {/* Partner Disconnected Warning in Multiplayer */}
         {isMultiActive && multi.partnerPlayer && !multi.partnerPlayer.connected && (
           <div className="w-full max-w-lg px-4 pt-2 animate-fade-in">
