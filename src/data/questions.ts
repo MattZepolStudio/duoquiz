@@ -1,4 +1,5 @@
 import { CategoryInfo, Question } from '../types/quiz';
+import { EXTRA_QUESTIONS } from './extraQuestions';
 
 export const CATEGORIES: CategoryInfo[] = [
   {
@@ -64,7 +65,7 @@ export const AVATAR_OPTIONS = [
   { id: 'heart', label: '❤️ Cœur' },
 ];
 
-export const INITIAL_QUESTIONS: Question[] = [
+const BASE_QUESTIONS: Question[] = [
   // =========================================================================
   // 1. SOUVENIRS & DÉBUTS (24 questions)
   // =========================================================================
@@ -1284,4 +1285,9 @@ export const INITIAL_QUESTIONS: Question[] = [
     options: ['Entendre ses soupirs et voir son plaisir sans retenue', 'Sa tendresse mêlée à sa passion fougueuse', 'Ses initiatives et son audace', 'La connexion émotionnelle intense dans ses yeux'],
     hint: 'L’étincelle ultime du plaisir partagé.',
   },
+];
+
+export const INITIAL_QUESTIONS: Question[] = [
+  ...BASE_QUESTIONS,
+  ...EXTRA_QUESTIONS,
 ];

@@ -186,7 +186,28 @@ export default function App() {
     return copy;
   };
 
-  // Helper to build a completely duplicate-free question list for a manche
+  const MAX_PERSISTED_HISTORY = 120;
+
+  const getPersistedPlayedQuestionIds = (): Set<string> => {
+    try {
+      const raw = localStorage.getItem('duoquiz_played_question_history');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return new Set(parsed);
+      }
+    } catch {}
+    return new Set();
+  };
+
+  const savePersistedPlayedQuestionIds = (newIds: string[]) => {
+    try {
+      const current = Array.from(getPersistedPlayedQuestionIds());
+      const combined = Array.from(new Set([...newIds, ...current])).slice(0, MAX_PERSISTED_HISTORY);
+      localStorage.setItem('duoquiz_played_question_history', JSON.stringify(combined));
+    } catch {}
+  };
+
+  // Helper to build a completely duplicate-free question list prioritizing never-before-seen questions
   const buildUniqueQuestionList = (
     count: number,
     globalUsedIds: Set<string>,
@@ -200,6 +221,8 @@ export default function App() {
         : (['souvenirs', 'quotidien', 'personnalite', 'projets', 'coquin'] as CategoryId[]);
 
     const categoryPool = INITIAL_QUESTIONS.filter((q) => effectiveCats.includes(q.category));
+    const persistentHistory = getPersistedPlayedQuestionIds();
+
     const pickedInManche = new Set<string>();
     const pickedTextInManche = new Set<string>();
     const pickedQuestions: Question[] = [];
@@ -217,42 +240,59 @@ export default function App() {
       return false;
     };
 
-    // Priority 1: Unused questions matching category AND chosen difficulty
+    // Priority 1: Unused in this session AND never played in recent games history (matching difficulty)
     const p1Pool = shuffleArray(
-      categoryPool.filter((q) => !updatedGlobalUsed.has(q.id) && q.difficulty === difficulty)
+      categoryPool.filter(
+        (q) => !updatedGlobalUsed.has(q.id) && !persistentHistory.has(q.id) && q.difficulty === difficulty
+      )
     );
     for (const q of p1Pool) {
       if (pickedQuestions.length >= count) break;
       tryAdd(q);
     }
 
-    // Priority 2: Unused questions matching category (any difficulty)
+    // Priority 2: Unused in this session AND never played in recent games history (any difficulty in category)
     if (pickedQuestions.length < count) {
-      const p2Pool = shuffleArray(categoryPool.filter((q) => !updatedGlobalUsed.has(q.id)));
+      const p2Pool = shuffleArray(
+        categoryPool.filter((q) => !updatedGlobalUsed.has(q.id) && !persistentHistory.has(q.id))
+      );
       for (const q of p2Pool) {
         if (pickedQuestions.length >= count) break;
         tryAdd(q);
       }
     }
 
-    // Priority 3: If all questions in selected categories have been exhausted in previous rounds,
-    // recycle questions from the pool, but STRICTLY exclude any question already picked in THIS manche!
+    // Priority 3: Unused in this session matching category AND difficulty (even if seen in older games)
     if (pickedQuestions.length < count) {
-      const p3Pool = shuffleArray(categoryPool);
+      const p3Pool = shuffleArray(
+        categoryPool.filter((q) => !updatedGlobalUsed.has(q.id) && q.difficulty === difficulty)
+      );
       for (const q of p3Pool) {
         if (pickedQuestions.length >= count) break;
         tryAdd(q);
       }
     }
 
-    // Priority 4: Final safety net across entire 120 questions
+    // Priority 4: Unused in this session matching category (any difficulty)
     if (pickedQuestions.length < count) {
-      const p4Pool = shuffleArray(INITIAL_QUESTIONS);
+      const p4Pool = shuffleArray(categoryPool.filter((q) => !updatedGlobalUsed.has(q.id)));
       for (const q of p4Pool) {
         if (pickedQuestions.length >= count) break;
         tryAdd(q);
       }
     }
+
+    // Priority 5: Recycle within category pool (strictly avoiding duplicates within the current manche)
+    if (pickedQuestions.length < count) {
+      const p5Pool = shuffleArray(categoryPool);
+      for (const q of p5Pool) {
+        if (pickedQuestions.length >= count) break;
+        tryAdd(q);
+      }
+    }
+
+    // Save picked questions to persistent history so subsequent games strictly avoid them
+    savePersistedPlayedQuestionIds(pickedQuestions.map((q) => q.id));
 
     return { questions: pickedQuestions, nextUsedIds: updatedGlobalUsed };
   };
