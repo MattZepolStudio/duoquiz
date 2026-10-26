@@ -662,9 +662,11 @@ export default function App() {
             isConnecting={multi.isConnecting}
             errorMessage={multi.errorMessage}
             onCreateRoom={(hostName, hostAvatar, cfg) => {
+              setPlayer1((prev) => ({ ...prev, name: hostName, avatar: hostAvatar }));
               multi.createRoom(hostName, hostAvatar, cfg);
             }}
             onJoinRoom={(code, name, avatar) => {
+              setPlayer2((prev) => ({ ...prev, name, avatar }));
               multi.joinRoom(code, name, avatar);
             }}
             onStartGame={handleStartMultiplayerGame}

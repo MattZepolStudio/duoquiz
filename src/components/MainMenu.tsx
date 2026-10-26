@@ -195,65 +195,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         </div>
       )}
 
-      {/* Game Mode Selector Card: 1 Phone vs 2 Phones */}
-      <div className="rounded-3xl bg-zinc-900/80 border border-zinc-800 p-4 space-y-3 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Smartphone className="w-4 h-4 text-rose-400" />
-            <h2 className="text-sm font-semibold text-white tracking-wide uppercase">
-              Mode de Jeu
-            </h2>
-          </div>
-          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            Nouveau : 2 Téléphones !
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2.5">
-          {/* Option 1: 1 Phone (Canapé) */}
-          <div className="p-3.5 rounded-2xl bg-zinc-950/90 border border-rose-500/60 shadow-md shadow-rose-950/30 flex flex-col justify-between text-left relative overflow-hidden">
-            <div className="absolute top-2 right-2">
-              <div className="w-2 h-2 rounded-full bg-rose-500" />
-            </div>
-            <div>
-              <div className="text-xl mb-1">📱</div>
-              <div className="font-bold text-xs text-white">1 Téléphone</div>
-              <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
-                Passe-et-joue sur un seul écran ensemble.
-              </div>
-            </div>
-            <div className="mt-2 text-[10px] font-semibold text-rose-400">
-              ✓ Mode actif
-            </div>
-          </div>
-
-          {/* Option 2: 2 Phones (Multiplayer) */}
-          <button
-            type="button"
-            onClick={() => {
-              sound.playTap();
-              onOpenMultiplayer();
-            }}
-            className="p-3.5 rounded-2xl bg-zinc-950/50 hover:bg-zinc-950/80 border border-zinc-800 hover:border-pink-500/50 flex flex-col justify-between text-left transition-all active:scale-95 group"
-          >
-            <div>
-              <div className="text-xl mb-1 group-hover:scale-110 transition-transform">📱📱</div>
-              <div className="font-bold text-xs text-zinc-200 group-hover:text-pink-300 transition-colors">
-                2 Téléphones
-              </div>
-              <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
-                Chacun son écran avec code ou QR Code !
-              </div>
-            </div>
-            <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold text-pink-400">
-              <span>Jouer à deux</span>
-              <span>→</span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* 1. Players Section: Pseudos & Avatars */}
+      {/* 1. Players Section: Pseudos & Avatars (Moved first so names are set before choosing 1 or 2 phones) */}
       <div className="rounded-3xl bg-zinc-900/80 border border-zinc-800 p-4 space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -262,7 +204,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               Les Joueurs (Pseudos)
             </h2>
           </div>
-          <span className="text-xs text-zinc-400">Touchez pour personnaliser</span>
+          <span className="text-xs text-zinc-400">Pour 1 ou 2 téléphones</span>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -359,6 +301,64 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Game Mode Selector Card: 1 Phone vs 2 Phones */}
+      <div className="rounded-3xl bg-zinc-900/80 border border-zinc-800 p-4 space-y-3 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Smartphone className="w-4 h-4 text-rose-400" />
+            <h2 className="text-sm font-semibold text-white tracking-wide uppercase">
+              Mode de Jeu
+            </h2>
+          </div>
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            Nouveau : 2 Téléphones !
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5">
+          {/* Option 1: 1 Phone (Canapé) */}
+          <div className="p-3.5 rounded-2xl bg-zinc-950/90 border border-rose-500/60 shadow-md shadow-rose-950/30 flex flex-col justify-between text-left relative overflow-hidden">
+            <div className="absolute top-2 right-2">
+              <div className="w-2 h-2 rounded-full bg-rose-500" />
+            </div>
+            <div>
+              <div className="text-xl mb-1">📱</div>
+              <div className="font-bold text-xs text-white">1 Téléphone</div>
+              <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
+                Passe-et-joue sur un seul écran ensemble.
+              </div>
+            </div>
+            <div className="mt-2 text-[10px] font-semibold text-rose-400">
+              ✓ Mode actif
+            </div>
+          </div>
+
+          {/* Option 2: 2 Phones (Multiplayer) */}
+          <button
+            type="button"
+            onClick={() => {
+              sound.playTap();
+              onOpenMultiplayer();
+            }}
+            className="p-3.5 rounded-2xl bg-zinc-950/50 hover:bg-zinc-950/80 border border-zinc-800 hover:border-pink-500/50 flex flex-col justify-between text-left transition-all active:scale-95 group"
+          >
+            <div>
+              <div className="text-xl mb-1 group-hover:scale-110 transition-transform">📱📱</div>
+              <div className="font-bold text-xs text-zinc-200 group-hover:text-pink-300 transition-colors">
+                2 Téléphones
+              </div>
+              <div className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
+                Chacun son écran avec code ou QR Code !
+              </div>
+            </div>
+            <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold text-pink-400">
+              <span>Jouer à deux</span>
+              <span>→</span>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* 2. Difficulty selector */}
