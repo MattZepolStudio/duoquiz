@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { MultiplayerRoomManager } from './src/server/multiplayerRoomManager';
+import { generateProceduralCupidQuestions } from './src/utils/proceduralCupid';
 
 dotenv.config();
 
@@ -39,6 +40,22 @@ async function startServer() {
         },
       },
     });
+  }
+
+  // Simple in-memory rate limiter to protect server from abusive scraping
+  const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+  function checkRateLimit(ip: string, maxRequests: number = 10, windowMs: number = 600000): boolean {
+    const now = Date.now();
+    const entry = rateLimitMap.get(ip);
+    if (!entry || now > entry.resetTime) {
+      rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+      return true;
+    }
+    if (entry.count >= maxRequests) {
+      return false;
+    }
+    entry.count += 1;
+    return true;
   }
 
   // Resilient multi-model Gemini caller with automatic fallback
@@ -77,23 +94,29 @@ async function startServer() {
   app.get('/api/gemini/status', (req, res) => {
     res.json({
       configured: !!ai,
+      mode: ai ? 'gemini_cloud_ai' : 'free_procedural_cupid_engine',
       message: ai
-        ? 'Gemini API connectée et opérationnelle.'
-        : 'GEMINI_API_KEY non définie sur le serveur d\'hébergement.',
+        ? 'Gemini Cloud API active avec protection anti-abus (Rate-Limiter actif).'
+        : 'Moteur Cupidon procédural 100% autonome & gratuit (0 clé requise, 0 coût).',
     });
   });
 
   // API Route: Generate Custom Couple Questions
   app.post('/api/gemini/generate-questions', async (req, res) => {
+    const { category, difficulty = 'medium', player1 = 'Joueur 1', player2 = 'Joueur 2', count = 5, previousQuestions = [] } = req.body;
+    const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.socket.remoteAddress || 'unknown';
+
+    // 1. If no Gemini API key configured OR rate-limit exceeded: use 100% free procedural generator
+    if (!ai || !checkRateLimit(clientIp, 10, 600000)) {
+      const proceduralQuestions = generateProceduralCupidQuestions(player1, player2, count, difficulty);
+      return res.json({
+        questions: proceduralQuestions,
+        source: 'procedural_cupid',
+      });
+    }
+
+    // 2. Try Gemini with fallback
     try {
-      if (!ai) {
-        return res.status(503).json({
-          error: 'Gemini API non configurée sur le serveur. Utilisation du mode questions locales.',
-        });
-      }
-
-      const { category, difficulty, player1, player2, count = 5, previousQuestions = [] } = req.body;
-
       const prompt = `Tu es le maître du jeu d'un quizz de couple intimiste, amusant, complice et bienveillant en français appelé DuoQuiz.
 Les deux partenaires s'appellent "${player1 || 'Joueur 1'}" et "${player2 || 'Joueur 2'}".
 Génère ${count} questions INÉDITES et variées pour la catégorie "${category || 'Général'}" et la difficulté "${difficulty || 'medium'}".
@@ -124,22 +147,45 @@ Renvoie UNIQUEMENT un tableau JSON strict :
 
       const responseText = await generateWithFallback(prompt, 'application/json', 0.8);
       const parsed = JSON.parse(responseText.trim());
-      return res.json({ questions: parsed });
+      return res.json({ questions: parsed, source: 'gemini' });
     } catch (error: any) {
-      console.error('Error generating questions with Gemini:', error);
-      return res.status(500).json({ error: error.message || 'Erreur lors de la génération' });
+      console.warn('Gemini error, smoothly falling back to Procedural Cupid:', error.message || error);
+      const proceduralQuestions = generateProceduralCupidQuestions(player1, player2, count, difficulty);
+      return res.json({
+        questions: proceduralQuestions,
+        source: 'procedural_cupid_fallback',
+      });
     }
   });
 
   // API Route: Cupid AI Verdict / Couple Compatibility Analysis
   app.post('/api/gemini/couple-verdict', async (req, res) => {
+    const { player1 = 'Joueur 1', player2 = 'Joueur 2', score = 0, totalQuestions = 5, matchedQuestions, mismatchedQuestions, isCoquin } = req.body;
+    const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.socket.remoteAddress || 'unknown';
+
+    // 1. Procedural verdict generator if no AI key or rate-limited
+    const generateLocalVerdict = () => {
+      const pct = Math.round((score / (totalQuestions || 1)) * 100);
+      const coupleTitle = isCoquin
+        ? (pct >= 80 ? 'Amants Torrides & Fusionnels 🔥' : pct >= 50 ? 'Complices Sensuels & Espiègles 💋' : 'Explorateurs de Désirs Secrets 🌶️')
+        : (pct >= 80 ? 'Les Âmes Sœurs Télépathiques 💖' : pct >= 50 ? 'Duo Complice & Plein de Surprises ✨' : 'Les Partenaires Mystères 🎭');
+      
+      const verdict = isCoquin
+        ? `Une alchimie indéniable et un charme partagé ! Avec ${score}/${totalQuestions} réponses en harmonie (${pct}%), votre complicité intime prouve que vous savez exactement comment faire grimper la température.`
+        : `Magnifique énergie de couple ! Avec ${score}/${totalQuestions} réponses partagées (${pct}%), vous avez à la fois des certitudes rassurantes et de délicieux mystères à continuer d'explorer ensemble.`;
+
+      const loveChallenge = isCoquin
+        ? `Gage coquin : Un massage sensuel de 5 minutes avec interdiction formelle pour la personne massée d'utiliser ses mains !`
+        : `Gage complice : Préparer ensemble un petit dessert gourmand ce soir ou danser un slow collé-serré dans le salon !`;
+
+      return { coupleTitle, verdict, loveChallenge, source: 'procedural_cupid' };
+    };
+
+    if (!ai || !checkRateLimit(clientIp, 10, 600000)) {
+      return res.json(generateLocalVerdict());
+    }
+
     try {
-      if (!ai) {
-        return res.status(503).json({ error: 'Gemini API non configurée' });
-      }
-
-      const { player1, player2, score, totalQuestions, matchedQuestions, mismatchedQuestions, isCoquin } = req.body;
-
       const gageInstruction = isCoquin
         ? `3. Un "Gage d'Amour" STRICTEMENT COQUIN, SENSUEL ET PIQUANT (le couple a activé le mode Coquin & Intimité) ! Propose un gage torride, charnel ou excitant pour faire monter le désir entre eux (ex: massage sensuel dénudé aux huiles de 10 min, baisers les yeux bandés sur des zones secrètes, retirer un vêtement avec les dents, chuchoter un fantasme inavoué sous la couette, caresses interdites pendant 2 min).`
         : `3. Un "Gage d'Amour" mignon, complice et romantique pour sceller la partie (ex: préparer le petit-déjeuner au lit demain matin, massage relaxant des épaules de 5 min, slow collé-serré dans le salon, 3 compliments profonds les yeux dans les yeux).`;
@@ -170,8 +216,8 @@ Renvoie UNIQUEMENT un JSON :
       const responseText = await generateWithFallback(prompt, 'application/json', 0.7);
       return res.json(JSON.parse(responseText.trim()));
     } catch (error: any) {
-      console.error('Error generating verdict:', error);
-      return res.status(500).json({ error: error.message || 'Erreur verdict' });
+      console.warn('Gemini verdict error, using procedural verdict:', error.message || error);
+      return res.json(generateLocalVerdict());
     }
   });
 
