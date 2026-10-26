@@ -38,17 +38,25 @@ export default function App() {
   const [player1, setPlayer1] = useState<Player>(() => {
     try {
       const saved = localStorage.getItem('duoquiz_p1');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.name === 'Joueur 1' || p.name === 'Moi') return { ...p, name: '' };
+        return p;
+      }
     } catch {}
-    return { id: 'p1', name: 'Joueur 1', avatar: '🦊', score: 0 };
+    return { id: 'p1', name: '', avatar: '🦊', score: 0 };
   });
 
   const [player2, setPlayer2] = useState<Player>(() => {
     try {
       const saved = localStorage.getItem('duoquiz_p2');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.name === 'Joueur 2' || p.name === 'Mon Amour') return { ...p, name: '' };
+        return p;
+      }
     } catch {}
-    return { id: 'p2', name: 'Joueur 2', avatar: '🐱', score: 0 };
+    return { id: 'p2', name: '', avatar: '🐱', score: 0 };
   });
 
   // Setup options

@@ -14,8 +14,11 @@ import {
   Layers,
   Smartphone,
   QrCode,
-  Users
+  Users,
+  Lock,
+  Pencil
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { CategoryId, DifficultyLevel, Player } from '../types/quiz';
 import { CATEGORIES, AVATAR_OPTIONS } from '../data/questions';
 import { sound } from '../utils/audio';
@@ -63,6 +66,39 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 }) => {
   const [activeAvatarPicker, setActiveAvatarPicker] = useState<1 | 2 | null>(null);
   const [showNsfwNotice, setShowNsfwNotice] = useState<boolean>(false);
+
+  // Check whether custom player names are set (not empty and not default placeholders)
+  const isP1Filled = !!(player1.name && player1.name.trim().length > 0 && player1.name.trim() !== 'Joueur 1' && player1.name.trim() !== 'Moi');
+  const isP2Filled = !!(player2.name && player2.name.trim().length > 0 && player2.name.trim() !== 'Joueur 2' && player2.name.trim() !== 'Mon Amour');
+  const hasCustomNames = isP1Filled && isP2Filled;
+
+  const [isPlayersConfirmed, setIsPlayersConfirmed] = useState<boolean>(() => {
+    try {
+      const confirmed = localStorage.getItem('duoquiz_players_confirmed');
+      if (confirmed === 'true' && hasCustomNames) return true;
+    } catch {}
+    return false;
+  });
+
+  const [isEditingPlayers, setIsEditingPlayers] = useState<boolean>(!isPlayersConfirmed);
+
+  const canConfirmNames = player1.name.trim().length > 0 && player2.name.trim().length > 0;
+
+  const handleConfirmPlayers = () => {
+    if (!canConfirmNames) return;
+    sound.playSuccess();
+    sound.vibrate(25);
+    confetti({
+      particleCount: 40,
+      spread: 60,
+      origin: { y: 0.35 },
+    });
+    setIsPlayersConfirmed(true);
+    setIsEditingPlayers(false);
+    try {
+      localStorage.setItem('duoquiz_players_confirmed', 'true');
+    } catch {}
+  };
 
   const getCategoryIcon = (iconName: string) => {
     switch (iconName) {
@@ -195,116 +231,226 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         </div>
       )}
 
-      {/* 1. Players Section: Pseudos & Avatars (Moved first so names are set before choosing 1 or 2 phones) */}
-      <div className="rounded-3xl bg-zinc-900/80 border border-zinc-800 p-4 space-y-4 shadow-sm">
+      {/* 1. Players Section: Pseudos & Avatars */}
+      <div className={`rounded-3xl p-4 space-y-3.5 shadow-sm transition-all border ${
+        !isPlayersConfirmed 
+          ? 'bg-zinc-900/90 border-rose-500/60 shadow-lg shadow-rose-950/30' 
+          : 'bg-zinc-900/80 border-zinc-800'
+      }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Smile className="w-4 h-4 text-rose-400" />
             <h2 className="text-sm font-semibold text-white tracking-wide uppercase">
-              Les Joueurs (Pseudos)
+              {!isPlayersConfirmed ? 'Étape 1 : Vos Pseudos' : 'Les Joueurs'}
             </h2>
           </div>
-          <span className="text-xs text-zinc-400">Pour 1 ou 2 téléphones</span>
+          {!isPlayersConfirmed ? (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse">
+              Étape obligatoire
+            </span>
+          ) : (
+            <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">
+              <Check className="w-3.5 h-3.5" />
+              Prénoms validés
+            </span>
+          )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {/* Player 1 Card */}
-          <div className="p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800 focus-within:border-rose-500/50 transition-colors">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-rose-400 uppercase tracking-wider">
-                Joueur 1
-              </span>
+        {/* When confirmed and collapsed */}
+        {isPlayersConfirmed && !isEditingPlayers ? (
+          <div className="p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center -space-x-1">
+                <span className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-base">
+                  {player1.avatar}
+                </span>
+                <span className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-base">
+                  {player2.avatar}
+                </span>
+              </div>
+              <div className="text-left">
+                <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span className="text-rose-300">{player1.name}</span>
+                  <span className="text-zinc-500">&</span>
+                  <span className="text-pink-300">{player2.name}</span>
+                </div>
+                <div className="text-[10px] text-zinc-400">
+                  Prêts pour le quiz (1 ou 2 téléphones)
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setIsEditingPlayers(true);
+              }}
+              className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            >
+              <Pencil className="w-3 h-3" />
+              <span>Modifier</span>
+            </button>
+          </div>
+        ) : (
+          /* Form for entering / editing names */
+          <div className="space-y-3">
+            {!isPlayersConfirmed && (
+              <p className="text-xs text-zinc-400 text-left">
+                Renseignez vos prénoms pour débloquer le mode 1 ou 2 téléphones et démarrer votre quiz.
+              </p>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Player 1 Card */}
+              <div className="p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800 focus-within:border-rose-500/50 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold text-rose-400 uppercase tracking-wider">
+                    Joueur 1
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playTap();
+                      setActiveAvatarPicker(activeAvatarPicker === 1 ? null : 1);
+                    }}
+                    className="w-8 h-8 rounded-full bg-zinc-800/80 hover:bg-zinc-700 flex items-center justify-center text-lg active:scale-95 transition-transform"
+                    title="Changer d'avatar"
+                  >
+                    {player1.avatar}
+                  </button>
+                </div>
+                <input
+                  id="player1-name-input"
+                  type="text"
+                  value={player1.name}
+                  onChange={(e) => onUpdatePlayer1({ name: e.target.value })}
+                  placeholder="Ex: Matt"
+                  maxLength={15}
+                  className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
+                />
+              </div>
+
+              {/* Player 2 Card */}
+              <div className="p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800 focus-within:border-pink-500/50 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold text-pink-400 uppercase tracking-wider">
+                    Joueur 2
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playTap();
+                      setActiveAvatarPicker(activeAvatarPicker === 2 ? null : 2);
+                    }}
+                    className="w-8 h-8 rounded-full bg-zinc-800/80 hover:bg-zinc-700 flex items-center justify-center text-lg active:scale-95 transition-transform"
+                    title="Changer d'avatar"
+                  >
+                    {player2.avatar}
+                  </button>
+                </div>
+                <input
+                  id="player2-name-input"
+                  type="text"
+                  value={player2.name}
+                  onChange={(e) => onUpdatePlayer2({ name: e.target.value })}
+                  placeholder="Ex: Julie"
+                  maxLength={15}
+                  className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Quick Avatar Drawer if active */}
+            {activeAvatarPicker && (
+              <div className="p-3 rounded-2xl bg-zinc-950/90 border border-zinc-800/90 animate-fade-in">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-zinc-400 font-medium">
+                    Choisis l'avatar pour {activeAvatarPicker === 1 ? player1.name || 'Joueur 1' : player2.name || 'Joueur 2'} :
+                  </span>
+                  <button
+                    onClick={() => setActiveAvatarPicker(null)}
+                    className="text-xs text-rose-400 font-semibold"
+                  >
+                    Fermer
+                  </button>
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {AVATAR_OPTIONS.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        sound.playTap();
+                        const emoji = item.label.split(' ')[0];
+                        if (activeAvatarPicker === 1) {
+                          onUpdatePlayer1({ avatar: emoji });
+                        } else {
+                          onUpdatePlayer2({ avatar: emoji });
+                        }
+                        setActiveAvatarPicker(null);
+                      }}
+                      className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-center text-lg active:scale-90 transition-all border border-zinc-800/60"
+                    >
+                      {item.label.split(' ')[0]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Validation / Action Button */}
+            {!isPlayersConfirmed ? (
+              <button
+                type="button"
+                disabled={!canConfirmNames}
+                onClick={handleConfirmPlayers}
+                className={`w-full py-3.5 px-4 rounded-2xl font-display font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-all active:scale-[0.98] ${
+                  canConfirmNames
+                    ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105 animate-pulse'
+                    : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                }`}
+              >
+                <Check className="w-4 h-4 stroke-[3]" />
+                <span>Valider nos prénoms & débloquer le jeu</span>
+                <span>✨</span>
+              </button>
+            ) : (
               <button
                 type="button"
                 onClick={() => {
-                  sound.playTap();
-                  setActiveAvatarPicker(activeAvatarPicker === 1 ? null : 1);
+                  sound.playSuccess();
+                  setIsEditingPlayers(false);
                 }}
-                className="w-8 h-8 rounded-full bg-zinc-800/80 hover:bg-zinc-700 flex items-center justify-center text-lg active:scale-95 transition-transform"
-                title="Changer d'avatar"
+                className="w-full py-2.5 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition-all"
               >
-                {player1.avatar}
+                Enregistrer les modifications ✓
               </button>
-            </div>
-            <input
-              type="text"
-              value={player1.name}
-              onChange={(e) => onUpdatePlayer1({ name: e.target.value })}
-              placeholder="Ton prénom"
-              maxLength={15}
-              className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
-            />
-          </div>
-
-          {/* Player 2 Card */}
-          <div className="p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800 focus-within:border-pink-500/50 transition-colors">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-pink-400 uppercase tracking-wider">
-                Joueur 2
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playTap();
-                  setActiveAvatarPicker(activeAvatarPicker === 2 ? null : 2);
-                }}
-                className="w-8 h-8 rounded-full bg-zinc-800/80 hover:bg-zinc-700 flex items-center justify-center text-lg active:scale-95 transition-transform"
-                title="Changer d'avatar"
-              >
-                {player2.avatar}
-              </button>
-            </div>
-            <input
-              type="text"
-              value={player2.name}
-              onChange={(e) => onUpdatePlayer2({ name: e.target.value })}
-              placeholder="Son prénom"
-              maxLength={15}
-              className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Quick Avatar Drawer if active */}
-        {activeAvatarPicker && (
-          <div className="p-3 rounded-2xl bg-zinc-950/90 border border-zinc-800/90 animate-fade-in">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-zinc-400 font-medium">
-                Choisis l'avatar pour {activeAvatarPicker === 1 ? player1.name || 'Joueur 1' : player2.name || 'Joueur 2'} :
-              </span>
-              <button
-                onClick={() => setActiveAvatarPicker(null)}
-                className="text-xs text-rose-400 font-semibold"
-              >
-                Fermer
-              </button>
-            </div>
-            <div className="grid grid-cols-5 gap-2">
-              {AVATAR_OPTIONS.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    sound.playTap();
-                    const emoji = item.label.split(' ')[0];
-                    if (activeAvatarPicker === 1) {
-                      onUpdatePlayer1({ avatar: emoji });
-                    } else {
-                      onUpdatePlayer2({ avatar: emoji });
-                    }
-                    setActiveAvatarPicker(null);
-                  }}
-                  className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-center text-lg active:scale-90 transition-all border border-zinc-800/60"
-                >
-                  {item.label.split(' ')[0]}
-                </button>
-              ))}
-            </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Game Mode Selector Card: 1 Phone vs 2 Phones */}
-      <div className="rounded-3xl bg-zinc-900/80 border border-zinc-800 p-4 space-y-3 shadow-sm">
+      {/* 2. Rest of the Settings: Blurred & Locked if players are not confirmed */}
+      <div className="relative">
+        {!isPlayersConfirmed && (
+          <div className="p-5 rounded-3xl bg-zinc-950/90 border border-rose-500/40 text-center flex flex-col items-center justify-center shadow-2xl mb-4 space-y-2 animate-fade-in">
+            <div className="w-11 h-11 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-md">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-display font-bold text-sm text-white">
+                Modes & Réglages verrouillés
+              </h3>
+              <p className="text-xs text-zinc-400 max-w-xs leading-relaxed mt-1">
+                Renseigne et valide vos deux prénoms dans l'<strong>Étape 1</strong> ci-dessus pour débloquer le choix du mode (1 ou 2 téléphones) et lancer la partie !
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className={`space-y-5 transition-all duration-500 ${!isPlayersConfirmed ? 'filter blur-[5px] opacity-25 pointer-events-none select-none' : 'filter-none opacity-100'}`}>
+          {/* Game Mode Selector Card: 1 Phone vs 2 Phones */}
+          <div className="rounded-3xl bg-zinc-900/80 border border-zinc-800 p-4 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Smartphone className="w-4 h-4 text-rose-400" />
@@ -556,33 +702,37 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           ))}
         </div>
       </div>
-
-      {/* 5. Sticky Bottom Play Button (Thumb Reach Zone) */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-zinc-950 via-zinc-950/95 to-transparent z-40 max-w-lg mx-auto">
-        <button
-          type="button"
-          disabled={selectedCategories.length === 0 || isLoadingAi}
-          onClick={() => {
-            sound.playSuccess();
-            sound.vibrate(25);
-            onStartGame();
-          }}
-          className={`w-full h-14 rounded-2xl flex items-center justify-center gap-2 font-display font-bold text-base shadow-xl transition-all active:scale-[0.98] ${
-            selectedCategories.length === 0
-              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105'
-          }`}
-        >
-          {isLoadingAi ? (
-            <span>Génération des questions magiques...</span>
-          ) : (
-            <>
-              <Play className="w-5 h-5 fill-current" />
-              <span>Lancer le Quiz de Couple</span>
-            </>
-          )}
-        </button>
       </div>
+      </div>
+
+      {/* 5. Sticky Bottom Play Button (Thumb Reach Zone) - Only when players are confirmed */}
+      {isPlayersConfirmed && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-zinc-950 via-zinc-950/95 to-transparent z-40 max-w-lg mx-auto animate-fade-in">
+          <button
+            type="button"
+            disabled={selectedCategories.length === 0 || isLoadingAi}
+            onClick={() => {
+              sound.playSuccess();
+              sound.vibrate(25);
+              onStartGame();
+            }}
+            className={`w-full h-14 rounded-2xl flex items-center justify-center gap-2 font-display font-bold text-base shadow-xl transition-all active:scale-[0.98] ${
+              selectedCategories.length === 0
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105'
+            }`}
+          >
+            {isLoadingAi ? (
+              <span>Génération des questions magiques...</span>
+            ) : (
+              <>
+                <Play className="w-5 h-5 fill-current" />
+                <span>Lancer le Quiz de Couple</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
