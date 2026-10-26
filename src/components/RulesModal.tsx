@@ -1,5 +1,18 @@
-import React from 'react';
-import { X, Heart, Smartphone, Flame, Award, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  X, 
+  Heart, 
+  Smartphone, 
+  Users, 
+  Flame, 
+  Sparkles, 
+  CheckCircle2, 
+  QrCode, 
+  Trophy, 
+  ArrowRight,
+  ShieldCheck,
+  Check
+} from 'lucide-react';
 import { sound } from '../utils/audio';
 
 interface RulesModalProps {
@@ -8,86 +21,227 @@ interface RulesModalProps {
 }
 
 export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
+  const [activeTab, setActiveTab] = useState<'modes' | 'scoring'>('modes');
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-md p-6 text-zinc-100 shadow-2xl overflow-y-auto max-h-[90vh]">
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-          <div className="flex items-center gap-2">
-            <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
-            <h3 className="text-lg font-display font-bold">Règles de DuoQuiz</h3>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          sound.playTap();
+          onClose();
+        }
+      }}
+    >
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-lg p-5 sm:p-6 text-zinc-100 shadow-2xl overflow-y-auto max-h-[90vh] flex flex-col space-y-4 animate-scale-up">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-md shadow-rose-950/60">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-base sm:text-lg font-display font-bold text-white flex items-center gap-1.5">
+                <span>Règles de</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-pink-400">
+                  DuoQuiz
+                </span>
+              </h3>
+              <p className="text-[11px] text-zinc-400">
+                Le jeu complice pour tester votre couple
+              </p>
+            </div>
           </div>
+          
           <button
+            type="button"
             onClick={() => {
               sound.playTap();
               onClose();
             }}
-            className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white"
+            className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-colors active:scale-90"
+            title="Fermer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="space-y-4 py-4 text-sm text-zinc-300">
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
-              <Smartphone className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-white">1. Tour secret sur un seul smartphone</h4>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                Le Joueur 1 prend le téléphone et répond en secret à une question sur ses goûts ou ses souvenirs.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-white">2. Passez le téléphone !</h4>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                Le Joueur 2 récupère le téléphone et tente de deviner ce que son partenaire a répondu !
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-              <Award className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-white">3. Révélation complice</h4>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                Les deux réponses s'affichent face-à-face. Si c'est identique, vous marquez un point ! Vous pouvez aussi valider manuellement si vous êtes d'accord sur le fond.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center shrink-0">
-              <Flame className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-white">4. Catégorie Coquine & Difficulté</h4>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                Activez la catégorie Coquine pour faire monter la température ! Vous pouvez ajuster la difficulté (Douce, Complice, Pimentée) à chaque manche.
-              </p>
-            </div>
-          </div>
+        {/* Tab Switcher */}
+        <div className="flex p-1 bg-zinc-950 rounded-2xl border border-zinc-800/80">
+          <button
+            type="button"
+            onClick={() => {
+              sound.playTap();
+              setActiveTab('modes');
+            }}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              activeTab === 'modes'
+                ? 'bg-zinc-800 text-white shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5 text-rose-400" />
+            <span>1 ou 2 Téléphones</span>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              sound.playTap();
+              setActiveTab('scoring');
+            }}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              activeTab === 'scoring'
+                ? 'bg-zinc-800 text-white shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span>Points & Complices</span>
+          </button>
         </div>
 
-        <button
-          onClick={() => {
-            sound.playTap();
-            onClose();
-          }}
-          className="w-full py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 font-semibold text-white shadow-lg shadow-rose-900/30 hover:opacity-95 transition-all active:scale-[0.98]"
-        >
-          C'est compris, jouons ! 💕
-        </button>
+        {/* Tab 1: Modes de jeu */}
+        {activeTab === 'modes' && (
+          <div className="space-y-3.5 text-xs text-zinc-300 animate-fade-in">
+            {/* Step 0: Prénoms & Avatars */}
+            <div className="p-3.5 rounded-2xl bg-zinc-950/60 border border-zinc-800/80 space-y-1">
+              <div className="flex items-center gap-2 text-rose-400 font-bold text-xs uppercase tracking-wider">
+                <Heart className="w-3.5 h-3.5 fill-rose-400" />
+                <span>Avant de commencer</span>
+              </div>
+              <p className="text-zinc-300 leading-relaxed text-[11px]">
+                Renseignez vos deux prénoms et choisissez vos avatars préférés. Cela personnalise chaque question et débloque le lancement de votre partie !
+              </p>
+            </div>
+
+            {/* Mode 1: Pass & Play */}
+            <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-rose-500/20 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                  <Smartphone className="w-3.5 h-3.5" />
+                </div>
+                <h4 className="font-bold text-white text-xs">
+                  Mode 1 Smartphone (Passez le téléphone)
+                </h4>
+              </div>
+
+              <div className="space-y-1.5 pl-2 border-l-2 border-rose-500/30 text-[11px] text-zinc-300">
+                <p>
+                  <strong className="text-white">1. Tour secret :</strong> Le Joueur 1 répond en secret sur ce qu'il ferait ou préfère.
+                </p>
+                <p>
+                  <strong className="text-white">2. Passez l'écran :</strong> Un écran de transition protège la réponse et invite à donner le téléphone au Joueur 2.
+                </p>
+                <p>
+                  <strong className="text-white">3. La prédiction :</strong> Le Joueur 2 choisit ce qu'il pense que son partenaire a répondu.
+                </p>
+                <p>
+                  <strong className="text-white">4. Révélation :</strong> Les réponses se dévoilent côte à côte !
+                </p>
+              </div>
+            </div>
+
+            {/* Mode 2: Multi-screen */}
+            <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-pink-500/20 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400">
+                  <Users className="w-3.5 h-3.5" />
+                </div>
+                <h4 className="font-bold text-white text-xs">
+                  Mode 2 Téléphones (En direct & synchronisé)
+                </h4>
+              </div>
+
+              <div className="space-y-1.5 pl-2 border-l-2 border-pink-500/30 text-[11px] text-zinc-300">
+                <p>
+                  <strong className="text-white">1. Connexion express :</strong> Créez une salle et faites scanner le <strong>QR Code</strong> par votre partenaire (ou entrez le code à 4 lettres).
+                </p>
+                <p>
+                  <strong className="text-white">2. Chacun son écran :</strong> Répondez simultanément sans risquer de voir les réponses de l'autre !
+                </p>
+                <p>
+                  <strong className="text-white">3. Synchronisation live :</strong> Dès que vous avez tous les deux voté, les réponses se révèlent en même temps sur vos 2 écrans.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Scoring & Rules */}
+        {activeTab === 'scoring' && (
+          <div className="space-y-3.5 text-xs text-zinc-300 animate-fade-in">
+            {/* Scoring & Validation */}
+            <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-emerald-500/20 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </div>
+                <h4 className="font-bold text-white text-xs">
+                  Points & Validation complice
+                </h4>
+              </div>
+
+              <div className="space-y-1.5 pl-2 border-l-2 border-emerald-500/30 text-[11px] text-zinc-300">
+                <p>
+                  <strong className="text-emerald-300">✓ Match parfait :</strong> Si vous choisissez exactement la même réponse, le point est attribué automatiquement !
+                </p>
+                <p>
+                  <strong className="text-amber-300">🤝 Accord mutuel (« Valider quand même ») :</strong> Si vos réponses diffèrent par les mots mais que vous êtes d'accord sur le fond, vous pouvez accorder le point manuellement d'un clic. Le but est de rire et d'échanger !
+                </p>
+              </div>
+            </div>
+
+            {/* Alternance des rôles */}
+            <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-amber-500/20 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+                <h4 className="font-bold text-white text-xs">
+                  Alternance des rôles
+                </h4>
+              </div>
+              <p className="text-[11px] text-zinc-300 leading-relaxed">
+                Les rôles s'inversent automatiquement à chaque manche : en manche 1, on devine les goûts du Joueur 1 ; en manche 2, c'est au tour du Joueur 2 d'être au centre des questions !
+              </p>
+            </div>
+
+            {/* Catégories & IA */}
+            <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-rose-500/20 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                  <Flame className="w-3.5 h-3.5" />
+                </div>
+                <h4 className="font-bold text-white text-xs">
+                  Catégories & Générateur IA
+                </h4>
+              </div>
+              <p className="text-[11px] text-zinc-300 leading-relaxed">
+                Mixez vos catégories (Souvenirs, Quotidien, Personnalité, Projets et la catégorie <strong>Coquine 🔥</strong>). Activez le <strong>Générateur IA Cupid</strong> pour des questions infinies générées sur-mesure pour votre duo.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Action Button */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => {
+              sound.playSuccess();
+              onClose();
+            }}
+            className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 font-display font-bold text-xs sm:text-sm text-white shadow-lg shadow-rose-950/50 hover:brightness-105 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            <Check className="w-4 h-4 stroke-[3]" />
+            <span>C'est tout compris, place au quiz ! 💕</span>
+          </button>
+        </div>
+
       </div>
     </div>
   );
