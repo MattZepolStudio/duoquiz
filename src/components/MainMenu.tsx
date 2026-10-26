@@ -72,7 +72,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   // Name must be at least 2 characters and not default placeholder names
   const isP1Valid = p1Trimmed.length >= 2 && p1Trimmed !== 'Joueur 1' && p1Trimmed !== 'Moi';
   const isP2Valid = p2Trimmed.length >= 2 && p2Trimmed !== 'Joueur 2' && p2Trimmed !== 'Mon Amour';
-  const canConfirmNames = p1Trimmed.length >= 2 && p2Trimmed.length >= 2;
+  const canConfirmNames = isP1Valid && isP2Valid;
 
   const [isPlayersConfirmed, setIsPlayersConfirmed] = useState<boolean>(() => {
     try {
@@ -83,6 +83,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   });
 
   const [isEditingPlayers, setIsEditingPlayers] = useState<boolean>(!isPlayersConfirmed);
+  const [previousValidNames, setPreviousValidNames] = useState<{ p1: string; p2: string }>({
+    p1: isP1Valid ? p1Trimmed : '',
+    p2: isP2Valid ? p2Trimmed : '',
+  });
 
   // If a player clears or shortens either name below 2 characters, immediately invalidate confirmation and re-lock
   useEffect(() => {
@@ -104,6 +108,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       spread: 60,
       origin: { y: 0.35 },
     });
+    onUpdatePlayer1({ name: p1Trimmed });
+    onUpdatePlayer2({ name: p2Trimmed });
+    setPreviousValidNames({ p1: p1Trimmed, p2: p2Trimmed });
     setIsPlayersConfirmed(true);
     setIsEditingPlayers(false);
     try {
@@ -295,6 +302,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               type="button"
               onClick={() => {
                 sound.playTap();
+                setPreviousValidNames({ p1: player1.name, p2: player2.name });
                 setIsEditingPlayers(true);
               }}
               className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold flex items-center gap-1.5 transition-colors"
@@ -336,6 +344,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                   type="text"
                   value={player1.name}
                   onChange={(e) => onUpdatePlayer1({ name: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (canConfirmNames) handleConfirmPlayers();
+                    }
+                  }}
                   placeholder="Ex: Matt"
                   maxLength={15}
                   className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
@@ -365,6 +379,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                   type="text"
                   value={player2.name}
                   onChange={(e) => onUpdatePlayer2({ name: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (canConfirmNames) handleConfirmPlayers();
+                    }
+                  }}
                   placeholder="Ex: Julie"
                   maxLength={15}
                   className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
@@ -410,49 +430,64 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             )}
 
             {/* Validation warning if names are too short or empty */}
-            {!canConfirmNames && (p1Trimmed.length > 0 || p2Trimmed.length > 0) && (
-              <p className="text-[11px] text-amber-400 font-medium text-center animate-fade-in flex items-center justify-center gap-1.5 py-1">
-                <span>⚠️</span>
-                <span>Chaque joueur doit avoir un prénom d'au moins 2 lettres.</span>
-              </p>
+            {!canConfirmNames && (
+              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center animate-fade-in">
+                <p className="text-[11px] text-amber-300 font-medium flex items-center justify-center gap-1.5">
+                  <span>⚠️</span>
+                  <span>
+                    {!p1Trimmed && !p2Trimmed
+                      ? 'Renseignez un prénom (au moins 2 lettres) pour chaque joueur.'
+                      : !isP1Valid
+                      ? (p1Trimmed === 'Joueur 1' || p1Trimmed === 'Moi'
+                          ? 'Veuillez choisir un vrai prénom pour le Joueur 1.'
+                          : 'Le prénom du Joueur 1 doit comporter au moins 2 lettres.')
+                      : (p2Trimmed === 'Joueur 2' || p2Trimmed === 'Mon Amour'
+                          ? 'Veuillez choisir un vrai prénom pour le Joueur 2.'
+                          : 'Le prénom du Joueur 2 doit comporter au moins 2 lettres.')}
+                  </span>
+                </p>
+              </div>
             )}
 
-            {/* Validation / Action Button */}
-            {!isPlayersConfirmed ? (
-              <button
-                type="button"
-                disabled={!canConfirmNames}
-                onClick={handleConfirmPlayers}
-                className={`w-full py-3.5 px-4 rounded-2xl font-display font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-all active:scale-[0.98] ${
-                  canConfirmNames
-                    ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105 animate-pulse'
-                    : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                }`}
-              >
-                <Check className="w-4 h-4 stroke-[3]" />
-                <span>Valider nos prénoms & débloquer le jeu</span>
-                <span>✨</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled={!canConfirmNames}
-                onClick={() => {
-                  if (!canConfirmNames) return;
-                  sound.playSuccess();
-                  setIsEditingPlayers(false);
-                  try {
-                    localStorage.setItem('duoquiz_players_confirmed', 'true');
-                  } catch {}
-                }}
-                className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all ${
-                  canConfirmNames
-                    ? 'bg-zinc-800 hover:bg-zinc-700 text-white active:scale-95'
-                    : 'bg-zinc-850 text-zinc-600 cursor-not-allowed border border-zinc-800'
-                }`}
-              >
-                Enregistrer les modifications ✓
-              </button>
+            {/* Validation / Action Button: strictly disabled if !canConfirmNames */}
+            <button
+              type="button"
+              disabled={!canConfirmNames}
+              onClick={handleConfirmPlayers}
+              className={`w-full py-3.5 px-4 rounded-2xl font-display font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-all active:scale-[0.98] ${
+                canConfirmNames
+                  ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105 animate-pulse cursor-pointer'
+                  : 'bg-zinc-800/80 text-zinc-500 cursor-not-allowed border border-zinc-800 opacity-60 pointer-events-none'
+              }`}
+            >
+              <Check className="w-4 h-4 stroke-[3]" />
+              <span>
+                {previousValidNames.p1 && previousValidNames.p2
+                  ? 'Enregistrer les modifications ✓'
+                  : 'Valider nos prénoms & débloquer le jeu ✨'}
+              </span>
+            </button>
+
+            {/* Cancel Button: restores previous valid names if available */}
+            {previousValidNames.p1 && previousValidNames.p2 && isEditingPlayers && (
+              <div className="flex justify-center pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playTap();
+                    onUpdatePlayer1({ name: previousValidNames.p1 });
+                    onUpdatePlayer2({ name: previousValidNames.p2 });
+                    setIsPlayersConfirmed(true);
+                    setIsEditingPlayers(false);
+                    try {
+                      localStorage.setItem('duoquiz_players_confirmed', 'true');
+                    } catch {}
+                  }}
+                  className="text-xs text-zinc-400 hover:text-zinc-200 underline font-medium transition-colors py-1"
+                >
+                  Annuler et rétablir ({previousValidNames.p1} & {previousValidNames.p2})
+                </button>
+              </div>
             )}
           </div>
         )}
