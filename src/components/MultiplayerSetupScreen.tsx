@@ -50,8 +50,12 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
   onStartGame,
   onBackToMenu,
 }) => {
-  // Check if room code was passed in URL query param or saved from previous session
-  const urlRoomCode = new URLSearchParams(window.location.search).get('room') || '';
+  // Check if room code or prefilled guest name was passed in URL query param or saved from previous session
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlRoomCode = urlParams.get('room') || '';
+  const urlP2Name = urlParams.get('p2') || '';
+  const urlP2Avatar = urlParams.get('av') || '';
+
   const savedCode = (() => {
     try {
       return localStorage.getItem('duoquiz_multi_room_code') || '';
@@ -66,9 +70,13 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
   const [joinCodeInput, setJoinCodeInput] = useState<string>(
     (urlRoomCode || savedCode).toUpperCase()
   );
-  const [guestName, setGuestName] = useState<string>(player2.name || 'Mon Amour');
-  const [guestAvatar, setGuestAvatar] = useState<string>(player2.avatar || '🐱');
-  const [hostName, setHostName] = useState<string>(player1.name || 'Moi');
+  const [guestName, setGuestName] = useState<string>(
+    urlP2Name || (player2.name && player2.name !== 'Mon Amour' ? player2.name : player2.name || 'Joueur 2')
+  );
+  const [guestAvatar, setGuestAvatar] = useState<string>(
+    urlP2Avatar || player2.avatar || '🐱'
+  );
+  const [hostName, setHostName] = useState<string>(player1.name || 'Joueur 1');
   const [hostAvatar, setHostAvatar] = useState<string>(player1.avatar || '🦊');
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
@@ -80,14 +88,14 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
   // Initialize public URL on mount
   useEffect(() => {
     initAppUrl().then((url) => {
-      setPublicUrlString(getPublicRoomUrl(roomState?.code));
+      setPublicUrlString(getPublicRoomUrl(roomState?.code, player2.name, player2.avatar));
     });
-  }, [roomState?.code]);
+  }, [roomState?.code, player2.name, player2.avatar]);
 
   // Generate QR Code with public preview URL
   useEffect(() => {
     if (roomState?.code) {
-      const shareUrl = getPublicRoomUrl(roomState.code);
+      const shareUrl = getPublicRoomUrl(roomState.code, player2.name, player2.avatar);
       setPublicUrlString(shareUrl);
       QRCode.toDataURL(shareUrl, {
         width: 240,
@@ -100,7 +108,7 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
         .then((url) => setQrCodeDataUrl(url))
         .catch((err) => console.error('Failed to generate QR code', err));
     }
-  }, [roomState?.code]);
+  }, [roomState?.code, player2.name, player2.avatar]);
 
   const handleCopyCode = () => {
     if (!roomState?.code) return;
@@ -113,13 +121,13 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
   const handleShareLink = async () => {
     if (!roomState?.code) return;
     sound.playTap();
-    const shareUrl = getPublicRoomUrl(roomState.code);
+    const shareUrl = getPublicRoomUrl(roomState.code, player2.name, player2.avatar);
 
     if (navigator.share) {
       try {
         await navigator.share({
           title: 'Rejoins-moi sur DuoQuiz !',
-          text: `Mon amour, rejoins ma partie DuoQuiz en direct :`,
+          text: `Rejoins ma partie DuoQuiz en direct :`,
           url: shareUrl,
         });
         return;
@@ -302,14 +310,14 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
                   className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl border ${
                     roomState.player2 && roomState.player2.connected
                       ? 'bg-pink-500/20 border-pink-500/30'
-                      : 'bg-zinc-900 border-zinc-800 text-zinc-600'
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-300'
                   }`}
                 >
-                  {roomState.player2?.avatar || '❓'}
+                  {roomState.player2?.avatar || player2.avatar || '🐱'}
                 </div>
                 <div>
                   <div className="font-semibold text-sm text-white">
-                    {roomState.player2?.name || 'Ton Amour'}
+                    {roomState.player2?.name || (player2.name && player2.name !== 'Mon Amour' ? player2.name : player2.name || 'Deuxième joueur')}
                   </div>
                   {roomState.player2 && roomState.player2.connected ? (
                     <span className="text-xs text-pink-400 font-medium flex items-center gap-1">
@@ -505,7 +513,7 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
         <div className="rounded-3xl bg-zinc-900/80 border border-zinc-800 p-4 space-y-4 shadow-sm animate-fade-in">
           <div>
             <h2 className="text-sm font-semibold text-white tracking-wide uppercase">
-              Rejoindre la partie de ton amour
+              Rejoindre la partie
             </h2>
             <p className="text-xs text-zinc-400 mt-0.5">
               Entre le code à 4 lettres affiché sur le premier téléphone.
@@ -566,7 +574,7 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
             ) : (
               <>
                 <Users className="w-4 h-4" />
-                <span>Rejoindre mon amour</span>
+                <span>Rejoindre la partie</span>
               </>
             )}
           </button>

@@ -32,7 +32,7 @@ export const MultiplayerWaitingScreen: React.FC<MultiplayerWaitingScreenProps> =
   totalCount,
   isCoquin,
 }) => {
-  const partnerName = partnerPlayer?.name || 'Ton Amour';
+  const partnerName = partnerPlayer?.name || 'Ton/Ta partenaire';
   const partnerAvatar = partnerPlayer?.avatar || '🐱';
 
   const teasers = waitingFor === 'target_answers' ? TEASERS_FOR_TARGET : TEASERS_FOR_GUESSER;

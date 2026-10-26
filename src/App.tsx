@@ -40,7 +40,7 @@ export default function App() {
       const saved = localStorage.getItem('duoquiz_p1');
       if (saved) return JSON.parse(saved);
     } catch {}
-    return { id: 'p1', name: 'Moi', avatar: '🦊', score: 0 };
+    return { id: 'p1', name: 'Joueur 1', avatar: '🦊', score: 0 };
   });
 
   const [player2, setPlayer2] = useState<Player>(() => {
@@ -48,7 +48,7 @@ export default function App() {
       const saved = localStorage.getItem('duoquiz_p2');
       if (saved) return JSON.parse(saved);
     } catch {}
-    return { id: 'p2', name: 'Mon Amour', avatar: '🐱', score: 0 };
+    return { id: 'p2', name: 'Joueur 2', avatar: '🐱', score: 0 };
   });
 
   // Setup options

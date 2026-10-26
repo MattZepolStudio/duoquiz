@@ -46,9 +46,18 @@ export function resolvePublicBaseUrl(): string {
   return KNOWN_DEV_URL;
 }
 
-export function getPublicRoomUrl(roomCode?: string): string {
+export function getPublicRoomUrl(roomCode?: string, guestName?: string, guestAvatar?: string): string {
   const base = cachedAppBaseUrl || resolvePublicBaseUrl();
   const cleanBase = base.replace(/\/$/, '');
-  return roomCode ? `${cleanBase}?room=${encodeURIComponent(roomCode.trim().toUpperCase())}` : cleanBase;
+  if (!roomCode) return cleanBase;
+  const params = new URLSearchParams();
+  params.set('room', roomCode.trim().toUpperCase());
+  if (guestName && guestName.trim()) {
+    params.set('p2', guestName.trim());
+  }
+  if (guestAvatar) {
+    params.set('av', guestAvatar);
+  }
+  return `${cleanBase}?${params.toString()}`;
 }
 

@@ -349,7 +349,7 @@ export class MultiplayerRoomManager {
         const guestId = `p2_${Date.now()}`;
         room.player2 = {
           id: guestId,
-          name: msg.playerName || 'Mon Amour',
+          name: msg.playerName || 'Joueur 2',
           avatar: msg.playerAvatar || '🐱',
           score: 0,
           connected: true,
