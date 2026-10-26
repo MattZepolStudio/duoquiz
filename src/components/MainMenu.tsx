@@ -322,109 +322,190 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               {/* Player 1 Card */}
-              <div className="p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800 focus-within:border-rose-500/50 transition-colors">
+              <div className={`p-3 rounded-2xl bg-zinc-950/70 border transition-all ${
+                activeAvatarPicker === 1
+                  ? 'border-rose-500/80 ring-2 ring-rose-500/20 bg-rose-950/10'
+                  : 'border-zinc-800 focus-within:border-rose-500/50'
+              }`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] font-bold text-rose-400 uppercase tracking-wider">
                     Joueur 1
                   </span>
+
+                  {/* Explicit Avatar Button */}
                   <button
                     type="button"
                     onClick={() => {
                       sound.playTap();
                       setActiveAvatarPicker(activeAvatarPicker === 1 ? null : 1);
                     }}
-                    className="w-8 h-8 rounded-full bg-zinc-800/80 hover:bg-zinc-700 flex items-center justify-center text-lg active:scale-95 transition-transform"
+                    className={`flex items-center gap-1.5 px-2 py-1 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
+                      activeAvatarPicker === 1
+                        ? 'bg-rose-500 text-white ring-2 ring-rose-400 shadow-sm'
+                        : 'bg-zinc-850 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80'
+                    }`}
                     title="Changer d'avatar"
                   >
-                    {player1.avatar}
+                    <span className="text-base leading-none">{player1.avatar}</span>
+                    <span className="text-[10px] font-medium text-rose-200">Avatar</span>
+                    <Pencil className="w-2.5 h-2.5 text-rose-300" />
                   </button>
                 </div>
-                <input
-                  id="player1-name-input"
-                  type="text"
-                  value={player1.name}
-                  onChange={(e) => onUpdatePlayer1({ name: e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (canConfirmNames) handleConfirmPlayers();
-                    }
-                  }}
-                  placeholder="Ex: Matt"
-                  maxLength={15}
-                  className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
-                />
+
+                <div className="space-y-1">
+                  <label htmlFor="player1-name-input" className="block text-[10px] text-zinc-400 font-medium">
+                    Prénom
+                  </label>
+                  <input
+                    id="player1-name-input"
+                    type="text"
+                    value={player1.name}
+                    onChange={(e) => onUpdatePlayer1({ name: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (canConfirmNames) handleConfirmPlayers();
+                      }
+                    }}
+                    placeholder="Ex: Matt"
+                    maxLength={15}
+                    className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-2.5 py-1.5 font-medium text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-rose-500/80 transition-colors"
+                  />
+                </div>
               </div>
 
               {/* Player 2 Card */}
-              <div className="p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800 focus-within:border-pink-500/50 transition-colors">
+              <div className={`p-3 rounded-2xl bg-zinc-950/70 border transition-all ${
+                activeAvatarPicker === 2
+                  ? 'border-pink-500/80 ring-2 ring-pink-500/20 bg-pink-950/10'
+                  : 'border-zinc-800 focus-within:border-pink-500/50'
+              }`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] font-bold text-pink-400 uppercase tracking-wider">
                     Joueur 2
                   </span>
+
+                  {/* Explicit Avatar Button */}
                   <button
                     type="button"
                     onClick={() => {
                       sound.playTap();
                       setActiveAvatarPicker(activeAvatarPicker === 2 ? null : 2);
                     }}
-                    className="w-8 h-8 rounded-full bg-zinc-800/80 hover:bg-zinc-700 flex items-center justify-center text-lg active:scale-95 transition-transform"
+                    className={`flex items-center gap-1.5 px-2 py-1 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
+                      activeAvatarPicker === 2
+                        ? 'bg-pink-500 text-white ring-2 ring-pink-400 shadow-sm'
+                        : 'bg-zinc-850 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80'
+                    }`}
                     title="Changer d'avatar"
                   >
-                    {player2.avatar}
+                    <span className="text-base leading-none">{player2.avatar}</span>
+                    <span className="text-[10px] font-medium text-pink-200">Avatar</span>
+                    <Pencil className="w-2.5 h-2.5 text-pink-300" />
                   </button>
                 </div>
-                <input
-                  id="player2-name-input"
-                  type="text"
-                  value={player2.name}
-                  onChange={(e) => onUpdatePlayer2({ name: e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (canConfirmNames) handleConfirmPlayers();
-                    }
-                  }}
-                  placeholder="Ex: Julie"
-                  maxLength={15}
-                  className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
-                />
+
+                <div className="space-y-1">
+                  <label htmlFor="player2-name-input" className="block text-[10px] text-zinc-400 font-medium">
+                    Prénom
+                  </label>
+                  <input
+                    id="player2-name-input"
+                    type="text"
+                    value={player2.name}
+                    onChange={(e) => onUpdatePlayer2({ name: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (canConfirmNames) handleConfirmPlayers();
+                      }
+                    }}
+                    placeholder="Ex: Julie"
+                    maxLength={15}
+                    className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-2.5 py-1.5 font-medium text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-pink-500/80 transition-colors"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Quick Avatar Drawer if active */}
+            {/* Dedicated Avatar Picker Panel */}
             {activeAvatarPicker && (
-              <div className="p-3 rounded-2xl bg-zinc-950/90 border border-zinc-800/90 animate-fade-in">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-zinc-400 font-medium">
-                    Choisis l'avatar pour {activeAvatarPicker === 1 ? player1.name || 'Joueur 1' : player2.name || 'Joueur 2'} :
-                  </span>
+              <div className="p-3.5 rounded-2xl bg-zinc-950/95 border border-zinc-700 shadow-2xl animate-fade-in space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500/20 to-pink-500/20 border border-rose-500/30 flex items-center justify-center text-base">
+                      {activeAvatarPicker === 1 ? player1.avatar : player2.avatar}
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <span>Choisir l'avatar de</span>
+                        <span className={activeAvatarPicker === 1 ? 'text-rose-400 font-extrabold' : 'text-pink-400 font-extrabold'}>
+                          {activeAvatarPicker === 1 ? player1.name || 'Joueur 1' : player2.name || 'Joueur 2'}
+                        </span>
+                      </h4>
+                      <p className="text-[10px] text-zinc-400">
+                        Touchez un avatar ci-dessous pour l'attribuer
+                      </p>
+                    </div>
+                  </div>
                   <button
+                    type="button"
                     onClick={() => setActiveAvatarPicker(null)}
-                    className="text-xs text-rose-400 font-semibold"
+                    className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold transition-colors"
                   >
-                    Fermer
+                    Fermer ✕
                   </button>
                 </div>
-                <div className="grid grid-cols-5 gap-2">
-                  {AVATAR_OPTIONS.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        sound.playTap();
-                        const emoji = item.label.split(' ')[0];
-                        if (activeAvatarPicker === 1) {
-                          onUpdatePlayer1({ avatar: emoji });
-                        } else {
-                          onUpdatePlayer2({ avatar: emoji });
-                        }
-                        setActiveAvatarPicker(null);
-                      }}
-                      className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-center text-lg active:scale-90 transition-all border border-zinc-800/60"
-                    >
-                      {item.label.split(' ')[0]}
-                    </button>
-                  ))}
+
+                <div className="grid grid-cols-5 gap-2 max-h-52 overflow-y-auto pr-0.5">
+                  {AVATAR_OPTIONS.map((item) => {
+                    const [emoji, ...nameParts] = item.label.split(' ');
+                    const labelName = nameParts.join(' ');
+                    const currentAvatar = activeAvatarPicker === 1 ? player1.avatar : player2.avatar;
+                    const isSelected = currentAvatar === emoji;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          sound.playTap();
+                          if (activeAvatarPicker === 1) {
+                            onUpdatePlayer1({ avatar: emoji });
+                          } else {
+                            onUpdatePlayer2({ avatar: emoji });
+                          }
+                          setActiveAvatarPicker(null);
+                        }}
+                        className={`group relative flex flex-col items-center justify-center p-2 rounded-xl transition-all active:scale-95 ${
+                          isSelected
+                            ? activeAvatarPicker === 1
+                              ? 'bg-rose-500/20 border-2 border-rose-500 ring-2 ring-rose-500/30 shadow-md'
+                              : 'bg-pink-500/20 border-2 border-pink-500 ring-2 ring-pink-500/30 shadow-md'
+                            : 'bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700'
+                        }`}
+                        title={item.label}
+                      >
+                        {isSelected && (
+                          <span className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-white flex items-center justify-center text-[9px] font-bold shadow ${
+                            activeAvatarPicker === 1 ? 'bg-rose-500' : 'bg-pink-500'
+                          }`}>
+                            ✓
+                          </span>
+                        )}
+                        <span className="text-2xl transition-transform group-hover:scale-110">
+                          {emoji}
+                        </span>
+                        <span className={`text-[10px] font-medium mt-1 truncate max-w-full ${
+                          isSelected 
+                            ? (activeAvatarPicker === 1 ? 'text-rose-300 font-bold' : 'text-pink-300 font-bold') 
+                            : 'text-zinc-400 group-hover:text-zinc-200'
+                        }`}>
+                          {labelName}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

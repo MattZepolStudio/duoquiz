@@ -53,10 +53,15 @@ export const AVATAR_OPTIONS = [
   { id: 'lion', label: '🦁 Lion' },
   { id: 'panda', label: '🐼 Panda' },
   { id: 'koala', label: '🐨 Koala' },
+  { id: 'rabbit', label: '🐰 Lapin' },
+  { id: 'crown', label: '👑 Couronne' },
   { id: 'croissant', label: '🥐 Croissant' },
   { id: 'coffee', label: '☕ Café' },
+  { id: 'avocado', label: '🥑 Avocat' },
   { id: 'fire', label: '🔥 Flamme' },
   { id: 'sparkle', label: '✨ Étoile' },
+  { id: 'rocket', label: '🚀 Fusée' },
+  { id: 'heart', label: '❤️ Cœur' },
 ];
 
 export const INITIAL_QUESTIONS: Question[] = [
