@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   Flame, 
@@ -67,22 +67,33 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const [activeAvatarPicker, setActiveAvatarPicker] = useState<1 | 2 | null>(null);
   const [showNsfwNotice, setShowNsfwNotice] = useState<boolean>(false);
 
-  // Check whether custom player names are set (not empty and not default placeholders)
-  const isP1Filled = !!(player1.name && player1.name.trim().length > 0 && player1.name.trim() !== 'Joueur 1' && player1.name.trim() !== 'Moi');
-  const isP2Filled = !!(player2.name && player2.name.trim().length > 0 && player2.name.trim() !== 'Joueur 2' && player2.name.trim() !== 'Mon Amour');
-  const hasCustomNames = isP1Filled && isP2Filled;
+  const p1Trimmed = (player1.name || '').trim();
+  const p2Trimmed = (player2.name || '').trim();
+  // Name must be at least 2 characters and not default placeholder names
+  const isP1Valid = p1Trimmed.length >= 2 && p1Trimmed !== 'Joueur 1' && p1Trimmed !== 'Moi';
+  const isP2Valid = p2Trimmed.length >= 2 && p2Trimmed !== 'Joueur 2' && p2Trimmed !== 'Mon Amour';
+  const canConfirmNames = p1Trimmed.length >= 2 && p2Trimmed.length >= 2;
 
   const [isPlayersConfirmed, setIsPlayersConfirmed] = useState<boolean>(() => {
     try {
       const confirmed = localStorage.getItem('duoquiz_players_confirmed');
-      if (confirmed === 'true' && hasCustomNames) return true;
+      if (confirmed === 'true' && isP1Valid && isP2Valid) return true;
     } catch {}
     return false;
   });
 
   const [isEditingPlayers, setIsEditingPlayers] = useState<boolean>(!isPlayersConfirmed);
 
-  const canConfirmNames = player1.name.trim().length > 0 && player2.name.trim().length > 0;
+  // If a player clears or shortens either name below 2 characters, immediately invalidate confirmation and re-lock
+  useEffect(() => {
+    if (!canConfirmNames && isPlayersConfirmed) {
+      setIsPlayersConfirmed(false);
+      setIsEditingPlayers(true);
+      try {
+        localStorage.removeItem('duoquiz_players_confirmed');
+      } catch {}
+    }
+  }, [canConfirmNames, isPlayersConfirmed]);
 
   const handleConfirmPlayers = () => {
     if (!canConfirmNames) return;
@@ -398,6 +409,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               </div>
             )}
 
+            {/* Validation warning if names are too short or empty */}
+            {!canConfirmNames && (p1Trimmed.length > 0 || p2Trimmed.length > 0) && (
+              <p className="text-[11px] text-amber-400 font-medium text-center animate-fade-in flex items-center justify-center gap-1.5 py-1">
+                <span>⚠️</span>
+                <span>Chaque joueur doit avoir un prénom d'au moins 2 lettres.</span>
+              </p>
+            )}
+
             {/* Validation / Action Button */}
             {!isPlayersConfirmed ? (
               <button
@@ -417,11 +436,20 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             ) : (
               <button
                 type="button"
+                disabled={!canConfirmNames}
                 onClick={() => {
+                  if (!canConfirmNames) return;
                   sound.playSuccess();
                   setIsEditingPlayers(false);
+                  try {
+                    localStorage.setItem('duoquiz_players_confirmed', 'true');
+                  } catch {}
                 }}
-                className="w-full py-2.5 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition-all"
+                className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all ${
+                  canConfirmNames
+                    ? 'bg-zinc-800 hover:bg-zinc-700 text-white active:scale-95'
+                    : 'bg-zinc-850 text-zinc-600 cursor-not-allowed border border-zinc-800'
+                }`}
               >
                 Enregistrer les modifications ✓
               </button>
@@ -484,7 +512,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           {/* Option 2: 2 Phones (Multiplayer) */}
           <button
             type="button"
+            disabled={!canConfirmNames}
             onClick={() => {
+              if (!canConfirmNames) {
+                sound.playTap();
+                setIsPlayersConfirmed(false);
+                setIsEditingPlayers(true);
+                return;
+              }
               sound.playTap();
               onOpenMultiplayer();
             }}
@@ -710,8 +745,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-zinc-950 via-zinc-950/95 to-transparent z-40 max-w-lg mx-auto animate-fade-in">
           <button
             type="button"
-            disabled={selectedCategories.length === 0 || isLoadingAi}
+            disabled={selectedCategories.length === 0 || isLoadingAi || !canConfirmNames}
             onClick={() => {
+              if (!canConfirmNames) {
+                sound.playTap();
+                setIsPlayersConfirmed(false);
+                setIsEditingPlayers(true);
+                return;
+              }
               sound.playSuccess();
               sound.vibrate(25);
               onStartGame();

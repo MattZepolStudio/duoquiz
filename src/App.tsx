@@ -265,6 +265,9 @@ export default function App() {
 
   // Start Game: launches Manche 1 (Player 1 answers first)
   const handleStartGame = async () => {
+    if ((player1.name?.trim().length || 0) < 2 || (player2.name?.trim().length || 0) < 2) {
+      return;
+    }
     setIsLoadingAi(true);
     const actualCount = questionCount === 99 ? 5 : questionCount;
 
