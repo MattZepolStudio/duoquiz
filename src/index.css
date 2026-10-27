@@ -38,3 +38,71 @@
   background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
 }
+
+/* 3D Card Flip utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Keyframes for Playful Reveal Animations */
+@keyframes gentle-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.animate-gentle-shake {
+  animation: gentle-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes heart-float {
+  0% {
+    transform: translateY(0) scale(0.6) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1) rotate(-6deg);
+  }
+  75% {
+    opacity: 0.9;
+    transform: translateY(-45px) scale(1.1) rotate(6deg);
+  }
+  100% {
+    transform: translateY(-65px) scale(0.8) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+.animate-heart-float {
+  animation: heart-float 1.8s ease-out forwards;
+}
+
+@keyframes shockwave {
+  0% {
+    transform: scale(0.96);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  }
+  60% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.animate-shockwave {
+  animation: shockwave 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
