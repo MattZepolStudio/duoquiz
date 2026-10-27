@@ -63,7 +63,8 @@ export type ClientMessage =
   | { type: 'next_reveal_or_question'; code: string }
   | { type: 'start_next_manche'; code: string; questions: Question[] }
   | { type: 'go_to_summary'; code: string; verdict?: CoupleVerdict }
-  | { type: 'leave_room'; code: string };
+  | { type: 'leave_room'; code: string }
+  | { type: 'ping' };
 
 // Server to Client WebSocket Messages
 export type ServerMessage =
@@ -71,4 +72,5 @@ export type ServerMessage =
   | { type: 'room_joined'; code: string; playerId: string; roomState: RoomState }
   | { type: 'sync_state'; roomState: RoomState }
   | { type: 'player_status'; player1Connected: boolean; player2Connected: boolean; message?: string }
+  | { type: 'pong' }
   | { type: 'error'; message: string };

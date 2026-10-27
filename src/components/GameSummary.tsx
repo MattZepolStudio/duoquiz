@@ -30,6 +30,10 @@ interface GameSummaryProps {
   nextMancheNumber?: number;
   nextTargetName?: string;
   selectedCategories?: CategoryId[];
+  isMultiplayer?: boolean;
+  isConnected?: boolean;
+  isReconnecting?: boolean;
+  onReconnect?: () => void;
 }
 
 export const GameSummary: React.FC<GameSummaryProps> = ({
@@ -42,6 +46,10 @@ export const GameSummary: React.FC<GameSummaryProps> = ({
   nextMancheNumber,
   nextTargetName,
   selectedCategories = [],
+  isMultiplayer = false,
+  isConnected = true,
+  isReconnecting = false,
+  onReconnect,
 }) => {
   const isCoquin = selectedCategories.includes('coquin');
   const [aiVerdict, setAiVerdict] = useState<CoupleVerdict | null>(null);
@@ -50,6 +58,8 @@ export const GameSummary: React.FC<GameSummaryProps> = ({
   const [currentChallenge, setCurrentChallenge] = useState<LoveChallenge>(() => getRandomChallenge(isCoquin));
   const [isRollingGage, setIsRollingGage] = useState<boolean>(false);
   const [aiGageActive, setAiGageActive] = useState<boolean>(false);
+  const [isLaunchingNext, setIsLaunchingNext] = useState<boolean>(false);
+  const [isRestarting, setIsRestarting] = useState<boolean>(false);
 
   const totalMatches = history.filter((r) => r.isMatch || r.agreedAnyway).length;
   const totalRounds = history.length;
@@ -383,34 +393,88 @@ export const GameSummary: React.FC<GameSummaryProps> = ({
         <span>{copiedLink ? 'Copié dans le presse-papier !' : 'Partager notre score de couple'}</span>
       </button>
 
+      {/* Multiplayer Disconnection Banner */}
+      {isMultiplayer && !isConnected && (
+        <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-left flex items-center justify-between gap-3 animate-fade-in shadow-lg">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="text-xl shrink-0">⚠️</span>
+            <div className="min-w-0">
+              <div className="text-xs font-bold text-white truncate">Connexion multijoueur coupée</div>
+              <div className="text-[11px] text-amber-200/90 leading-tight">
+                {isReconnecting ? 'Reconnexion automatique...' : 'Un souci réseau est survenu.'}
+              </div>
+            </div>
+          </div>
+          {onReconnect && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                onReconnect();
+              }}
+              disabled={isReconnecting}
+              className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-200 text-xs font-semibold active:scale-95 transition-all shrink-0 flex items-center gap-1.5"
+            >
+              {isReconnecting ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
+                  <span>En cours...</span>
+                </>
+              ) : (
+                <span>Réessayer 🔄</span>
+              )}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Action Buttons in Thumb Zone */}
       <div className="space-y-2.5 pt-2">
         {onNextManche && (
           <button
             type="button"
+            disabled={isLaunchingNext}
             onClick={() => {
+              if (isLaunchingNext) return;
+              setIsLaunchingNext(true);
               sound.playTap();
               sound.vibrate(20);
               onNextManche();
             }}
-            className="w-full h-14 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white font-display font-bold text-sm shadow-xl shadow-rose-950/50 hover:brightness-105 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+            className={`w-full h-14 rounded-2xl font-display font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
+              isLaunchingNext
+                ? 'bg-zinc-800 text-zinc-400 border border-zinc-700 cursor-not-allowed'
+                : 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105'
+            }`}
           >
-            <span>Lancer la manche {nextMancheNumber || 2} ({nextTargetName || 'Partenaire'})</span>
-            <ArrowRight className="w-5 h-5" />
+            {isLaunchingNext ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+                <span>Lancement de la manche {nextMancheNumber || 2}...</span>
+              </>
+            ) : (
+              <>
+                <span>Lancer la manche {nextMancheNumber || 2} ({nextTargetName || 'Partenaire'})</span>
+                <ArrowRight className="w-5 h-5" />
+              </>
+            )}
           </button>
         )}
 
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
+            disabled={isRestarting}
             onClick={() => {
+              if (isRestarting) return;
+              setIsRestarting(true);
               sound.playTap();
               onRestart();
             }}
             className="h-12 rounded-2xl bg-zinc-900 border border-zinc-800 text-white font-semibold text-xs flex items-center justify-center gap-2 active:scale-95 hover:bg-zinc-850"
           >
-            <RotateCcw className="w-4 h-4 text-zinc-400" />
-            <span>Rejouer</span>
+            <RotateCcw className={`w-4 h-4 text-zinc-400 ${isRestarting ? 'animate-spin' : ''}`} />
+            <span>{isRestarting ? 'Relance...' : 'Rejouer'}</span>
           </button>
 
           <button

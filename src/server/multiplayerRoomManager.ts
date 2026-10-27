@@ -216,6 +216,19 @@ export class MultiplayerRoomManager {
         break;
       }
 
+      case 'ping': {
+        this.send(ws, { type: 'pong' });
+        const meta = this.wsToPlayer.get(ws);
+        if (meta) {
+          const room = this.rooms.get(meta.roomCode);
+          if (room) {
+            if (room.player1.id === meta.playerId) room.player1.lastActive = Date.now();
+            if (room.player2?.id === meta.playerId) room.player2.lastActive = Date.now();
+          }
+        }
+        break;
+      }
+
       case 'reconnect': {
         const cleanCode = msg.code.trim().toUpperCase();
         const room = this.rooms.get(cleanCode);
@@ -225,6 +238,9 @@ export class MultiplayerRoomManager {
         }
 
         if (room.player1.id === msg.playerId) {
+          if (room.player1.ws && room.player1.ws !== ws) {
+            try { room.player1.ws.close(); } catch {}
+          }
           room.player1.ws = ws;
           room.player1.connected = true;
           room.player1.lastActive = Date.now();
@@ -240,6 +256,9 @@ export class MultiplayerRoomManager {
         }
 
         if (room.player2?.id === msg.playerId) {
+          if (room.player2.ws && room.player2.ws !== ws) {
+            try { room.player2.ws.close(); } catch {}
+          }
           room.player2.ws = ws;
           room.player2.connected = true;
           room.player2.lastActive = Date.now();
@@ -252,6 +271,47 @@ export class MultiplayerRoomManager {
           });
           this.syncRoom(room);
           return;
+        }
+
+        // Fallback reconnection for active in-progress game if a player slot got disconnected
+        if (room.stage !== 'lobby') {
+          // If player 2 disconnected or connection is inactive, re-attach guest
+          if (room.player2 && (!room.player2.connected || !room.player2.ws || room.player2.ws.readyState !== 1)) {
+            if (room.player2.ws && room.player2.ws !== ws) {
+              try { room.player2.ws.close(); } catch {}
+            }
+            room.player2.ws = ws;
+            room.player2.connected = true;
+            room.player2.lastActive = Date.now();
+            this.wsToPlayer.set(ws, { roomCode: cleanCode, playerId: room.player2.id });
+            this.send(ws, {
+              type: 'room_joined',
+              code: cleanCode,
+              playerId: room.player2.id,
+              roomState: this.getClientRoomState(room, room.player2.id),
+            });
+            this.syncRoom(room);
+            return;
+          }
+
+          // If player 1 disconnected or connection is inactive, re-attach host
+          if (!room.player1.connected || !room.player1.ws || room.player1.ws.readyState !== 1) {
+            if (room.player1.ws && room.player1.ws !== ws) {
+              try { room.player1.ws.close(); } catch {}
+            }
+            room.player1.ws = ws;
+            room.player1.connected = true;
+            room.player1.lastActive = Date.now();
+            this.wsToPlayer.set(ws, { roomCode: cleanCode, playerId: room.player1.id });
+            this.send(ws, {
+              type: 'room_joined',
+              code: cleanCode,
+              playerId: room.player1.id,
+              roomState: this.getClientRoomState(room, room.player1.id),
+            });
+            this.syncRoom(room);
+            return;
+          }
         }
 
         this.send(ws, { type: 'error', message: 'Session introuvable dans ce salon.' });
@@ -269,6 +329,9 @@ export class MultiplayerRoomManager {
 
         // 1. Exact Reconnection check by playerId
         if (msg.playerId && room.player1.id === msg.playerId) {
+          if (room.player1.ws && room.player1.ws !== ws) {
+            try { room.player1.ws.close(); } catch {}
+          }
           room.player1.ws = ws;
           room.player1.connected = true;
           room.player1.lastActive = Date.now();
@@ -284,6 +347,9 @@ export class MultiplayerRoomManager {
         }
 
         if (msg.playerId && room.player2?.id === msg.playerId) {
+          if (room.player2.ws && room.player2.ws !== ws) {
+            try { room.player2.ws.close(); } catch {}
+          }
           room.player2.ws = ws;
           room.player2.connected = true;
           room.player2.lastActive = Date.now();
@@ -300,8 +366,11 @@ export class MultiplayerRoomManager {
 
         // 2. Fallback reconnection for active in-progress game if a player got disconnected
         if (room.stage !== 'lobby') {
-          // If player 2 was disconnected, re-attach guest
-          if (room.player2 && !room.player2.connected) {
+          // If player 2 was disconnected or connection is inactive, re-attach guest
+          if (room.player2 && (!room.player2.connected || !room.player2.ws || room.player2.ws.readyState !== 1)) {
+            if (room.player2.ws && room.player2.ws !== ws) {
+              try { room.player2.ws.close(); } catch {}
+            }
             room.player2.ws = ws;
             room.player2.connected = true;
             room.player2.lastActive = Date.now();
@@ -318,8 +387,11 @@ export class MultiplayerRoomManager {
             return;
           }
 
-          // If player 1 was disconnected, re-attach host
-          if (!room.player1.connected) {
+          // If player 1 was disconnected or connection is inactive, re-attach host
+          if (!room.player1.connected || !room.player1.ws || room.player1.ws.readyState !== 1) {
+            if (room.player1.ws && room.player1.ws !== ws) {
+              try { room.player1.ws.close(); } catch {}
+            }
             room.player1.ws = ws;
             room.player1.connected = true;
             room.player1.lastActive = Date.now();
@@ -375,13 +447,22 @@ export class MultiplayerRoomManager {
         const room = this.rooms.get(msg.code);
         if (!room) return;
 
-        // Ensure game can only be started from lobby
-        if (room.stage !== 'lobby') return;
+        // Ensure game can be started from lobby or replayed from summary
+        if (room.stage !== 'lobby' && room.stage !== 'summary') return;
 
         // Ensure sender is the host (player1)
         const senderMeta = this.wsToPlayer.get(ws);
-        if (senderMeta && senderMeta.playerId !== room.player1.id) {
+        if (senderMeta && senderMeta.playerId !== room.player1.id && room.stage === 'lobby') {
           return;
+        }
+
+        // If replaying from summary, reset scores, manche and history
+        if (room.stage === 'summary') {
+          room.player1.score = 0;
+          if (room.player2) room.player2.score = 0;
+          room.currentManche = 1;
+          room.cumulativeHistory = [];
+          room.verdict = undefined;
         }
 
         room.questions = msg.questions;
@@ -546,9 +627,8 @@ export class MultiplayerRoomManager {
         const room = this.rooms.get(msg.code);
         if (!room) return;
 
-        // CRITICAL GUARD: Only advance if currently in round_switch!
-        // Drops any race condition or duplicate button press from either phone!
-        if (room.stage !== 'round_switch') return;
+        // Allow advancing from both round_switch and summary
+        if (room.stage !== 'round_switch' && room.stage !== 'summary') return;
 
         room.currentManche += 1;
         room.questions = msg.questions;

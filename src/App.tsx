@@ -915,6 +915,10 @@ export default function App() {
                     ? multi.roomState.player2?.name || player2.name
                     : multi.roomState.player1.name
                 }
+                isMultiplayer={true}
+                isConnected={multi.isConnected}
+                isReconnecting={multi.isReconnecting}
+                onReconnect={() => multi.reconnectSavedSession()}
               />
             )}
           </>

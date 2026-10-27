@@ -32,6 +32,8 @@ export function useMultiplayer() {
 
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<any>(null);
+  const reconnectAttemptsRef = useRef<number>(0);
+  const heartbeatIntervalRef = useRef<any>(null);
   const isIntentionalLeaveRef = useRef<boolean>(false);
   const roomCodeRef = useRef<string | null>(savedRoomCode);
   const playerIdRef = useRef<string | null>(playerId);
@@ -57,27 +59,62 @@ export function useMultiplayer() {
         return;
       }
 
+      // If existing socket is already connecting, close it before opening fresh
+      if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
+        try {
+          socketRef.current.close();
+        } catch {}
+      }
+
       setIsConnecting(true);
+      let didSettle = false;
       const ws = new WebSocket(getWsUrl());
 
+      const timeoutId = setTimeout(() => {
+        if (!didSettle && ws.readyState !== WebSocket.OPEN) {
+          didSettle = true;
+          try { ws.close(); } catch {}
+          setIsConnecting(false);
+          setIsReconnecting(false);
+          reject(new Error('Délai de connexion dépassé'));
+        }
+      }, 6000);
+
       ws.onopen = () => {
+        if (didSettle) return;
+        didSettle = true;
+        clearTimeout(timeoutId);
         setIsConnected(true);
         setIsConnecting(false);
         setIsReconnecting(false);
         setErrorMessage(null);
+        reconnectAttemptsRef.current = 0;
         socketRef.current = ws;
+
+        // Start heartbeat to prevent proxy timeout
+        if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'ping' }));
+          }
+        }, 12000);
+
         resolve(ws);
       };
 
       ws.onmessage = (event) => {
         try {
           const msg: ServerMessage = JSON.parse(event.data);
+          if (msg.type === 'pong') {
+            return;
+          }
           if (msg.type === 'room_created' || msg.type === 'room_joined') {
             setRoomState(msg.roomState);
             setPlayerId(msg.playerId);
             setSavedRoomCode(msg.code);
             setIsReconnecting(false);
             setErrorMessage(null);
+            reconnectAttemptsRef.current = 0;
             try {
               localStorage.setItem('duoquiz_multi_player_id', msg.playerId);
               localStorage.setItem('duoquiz_multi_room_code', msg.code);
@@ -88,6 +125,7 @@ export function useMultiplayer() {
           } else if (msg.type === 'sync_state') {
             setRoomState(msg.roomState);
             setIsReconnecting(false);
+            reconnectAttemptsRef.current = 0;
             if (msg.roomState.stage !== 'lobby') {
               try {
                 sessionStorage.setItem('duoquiz_multi_in_game', 'true');
@@ -96,7 +134,7 @@ export function useMultiplayer() {
           } else if (msg.type === 'error') {
             setErrorMessage(msg.message);
             setIsReconnecting(false);
-            if (msg.message.toLowerCase().includes('introuvable') || msg.message.toLowerCase().includes('expiré')) {
+            if (msg.message.toLowerCase().includes('salon introuvable') || msg.message.toLowerCase().includes('expiré')) {
               try {
                 localStorage.removeItem('duoquiz_multi_room_code');
                 sessionStorage.removeItem('duoquiz_multi_in_game');
@@ -109,26 +147,45 @@ export function useMultiplayer() {
         }
       };
 
-      ws.onerror = () => {
-        setIsConnecting(false);
-        setIsReconnecting(false);
-        setErrorMessage('Impossible de contacter le serveur multijoueur.');
+      ws.onerror = (e) => {
+        if (!didSettle) {
+          didSettle = true;
+          clearTimeout(timeoutId);
+          setIsConnecting(false);
+          setIsReconnecting(false);
+          setErrorMessage('Impossible de contacter le serveur multijoueur.');
+          reject(e);
+        }
       };
 
       ws.onclose = () => {
+        if (!didSettle) {
+          didSettle = true;
+          clearTimeout(timeoutId);
+          reject(new Error('WebSocket fermé avant ouverture'));
+        }
         setIsConnected(false);
         setIsConnecting(false);
         socketRef.current = null;
+        if (heartbeatIntervalRef.current) {
+          clearInterval(heartbeatIntervalRef.current);
+          heartbeatIntervalRef.current = null;
+        }
 
-        // Auto-reconnect if connection dropped accidentally during an active game
+        // Auto-reconnect loop with exponential backoff if dropped accidentally
         const activeCode = roomCodeRef.current;
         const activeId = playerIdRef.current;
-        if (activeCode && activeId && !isIntentionalLeaveRef.current) {
+        if (activeCode && !isIntentionalLeaveRef.current) {
           setIsReconnecting(true);
-          if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
-          reconnectTimeoutRef.current = setTimeout(() => {
-            reconnectSavedSession(activeCode, activeId);
-          }, 2000);
+          const attempt = reconnectAttemptsRef.current;
+          if (attempt < 15) {
+            reconnectAttemptsRef.current = attempt + 1;
+            const delay = Math.min(8000, 1200 + attempt * 800);
+            if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+            reconnectTimeoutRef.current = setTimeout(() => {
+              reconnectSavedSession(activeCode, activeId || undefined);
+            }, delay);
+          }
         }
       };
     });
@@ -137,6 +194,16 @@ export function useMultiplayer() {
   const sendMessage = useCallback((msg: ClientMessage) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify(msg));
+    } else {
+      const activeCode = roomCodeRef.current;
+      const activeId = playerIdRef.current;
+      if (activeCode && !isIntentionalLeaveRef.current) {
+        reconnectSavedSession(activeCode, activeId || undefined).then((ok) => {
+          if (ok && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(JSON.stringify(msg));
+          }
+        });
+      }
     }
   }, []);
 
@@ -171,8 +238,35 @@ export function useMultiplayer() {
     [connect, savedRoomCode, playerId]
   );
 
+  // Listen to visibility change (unlocking phone / returning to browser tab) and online event
+  useEffect(() => {
+    const handleReactivate = () => {
+      const activeCode = roomCodeRef.current;
+      const activeId = playerIdRef.current;
+      if (!document.hidden && activeCode && !isIntentionalLeaveRef.current) {
+        if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+          reconnectSavedSession(activeCode, activeId || undefined);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleReactivate);
+    window.addEventListener('online', handleReactivate);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleReactivate);
+      window.removeEventListener('online', handleReactivate);
+    };
+  }, [reconnectSavedSession]);
+
   const clearSavedSession = useCallback(() => {
     isIntentionalLeaveRef.current = true;
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+    }
     try {
       localStorage.removeItem('duoquiz_multi_room_code');
       sessionStorage.removeItem('duoquiz_multi_in_game');
