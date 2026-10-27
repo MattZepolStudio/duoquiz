@@ -375,6 +375,15 @@ export class MultiplayerRoomManager {
         const room = this.rooms.get(msg.code);
         if (!room) return;
 
+        // Ensure game can only be started from lobby
+        if (room.stage !== 'lobby') return;
+
+        // Ensure sender is the host (player1)
+        const senderMeta = this.wsToPlayer.get(ws);
+        if (senderMeta && senderMeta.playerId !== room.player1.id) {
+          return;
+        }
+
         room.questions = msg.questions;
         room.stage = 'p1_series';
         room.currentQuestionIndex = 0;
@@ -390,6 +399,9 @@ export class MultiplayerRoomManager {
       case 'submit_target_answer': {
         const room = this.rooms.get(msg.code);
         if (!room) return;
+
+        // Only accept target answers during p1_series
+        if (room.stage !== 'p1_series') return;
 
         room.p1Answers[msg.questionIndex] = msg.answer;
         if (msg.updatedOptions && room.questions[msg.questionIndex]) {
@@ -414,6 +426,9 @@ export class MultiplayerRoomManager {
         const room = this.rooms.get(msg.code);
         if (!room) return;
 
+        // Only allow replacing questions during p1_series
+        if (room.stage !== 'p1_series') return;
+
         if (room.questions[msg.questionIndex]) {
           room.questions[msg.questionIndex] = msg.question;
           this.syncRoom(room);
@@ -425,6 +440,9 @@ export class MultiplayerRoomManager {
         const room = this.rooms.get(msg.code);
         if (!room) return;
 
+        // Only transition if currently in p1_series
+        if (room.stage !== 'p1_series') return;
+
         room.stage = 'p2_turn';
         room.currentQuestionIndex = 0;
         this.syncRoom(room);
@@ -434,6 +452,10 @@ export class MultiplayerRoomManager {
       case 'submit_guesser_answer': {
         const room = this.rooms.get(msg.code);
         if (!room) return;
+
+        // Only accept guesser answer during p2_turn for the active question index
+        if (room.stage !== 'p2_turn') return;
+        if (msg.questionIndex !== room.currentQuestionIndex) return;
 
         room.p2Answers[msg.questionIndex] = msg.answer;
         room.currentQuestionIndex = msg.questionIndex;
@@ -455,6 +477,10 @@ export class MultiplayerRoomManager {
       case 'next_reveal_or_question': {
         const room = this.rooms.get(msg.code);
         if (!room) return;
+
+        // CRITICAL GUARD: Only advance if currently in reveal_turn!
+        // Prevents double-taps or concurrent taps from skipping questions!
+        if (room.stage !== 'reveal_turn') return;
 
         const isLastQuestion = room.currentQuestionIndex >= room.questions.length - 1;
 
@@ -519,6 +545,10 @@ export class MultiplayerRoomManager {
       case 'start_next_manche': {
         const room = this.rooms.get(msg.code);
         if (!room) return;
+
+        // CRITICAL GUARD: Only advance if currently in round_switch!
+        // Drops any race condition or duplicate button press from either phone!
+        if (room.stage !== 'round_switch') return;
 
         room.currentManche += 1;
         room.questions = msg.questions;

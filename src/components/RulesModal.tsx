@@ -221,7 +221,7 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
                 </h4>
               </div>
               <p className="text-[11px] text-zinc-300 leading-relaxed">
-                Mixez vos catégories (Souvenirs, Quotidien, Personnalité, Projets et la catégorie <strong>Coquine 🔥</strong>). Activez le <strong>Générateur IA Cupid</strong> pour des questions infinies générées sur-mesure pour votre duo.
+                Mixez vos 5 catégories thématiques (Souvenirs, Quotidien, Personnalité, Projets et la catégorie <strong>Coquine 🔥</strong>) avec plus de <strong>1 500 questions inédites</strong> (+100 questions disponibles pour chaque niveau de difficulté !). Activez aussi le <strong>Générateur IA Cupid</strong> pour des questions infinies générées sur-mesure.
               </p>
             </div>
           </div>

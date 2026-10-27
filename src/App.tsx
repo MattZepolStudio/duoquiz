@@ -94,7 +94,7 @@ export default function App() {
     }
   }, [urlRoomCode, multi.savedRoomCode]);
 
-  // Auto-restore target answers and advance to first unanswered question when reconnecting to p1_series
+  // Auto-restore target answers and advance to first unanswered question when starting or reconnecting to p1_series
   useEffect(() => {
     if (multi.roomState && multi.roomState.stage === 'p1_series' && multi.isTarget) {
       if (multi.roomState.targetAnswers && multi.roomState.targetAnswers.length > 0) {
@@ -104,10 +104,15 @@ export default function App() {
         );
         if (firstUnanswered !== -1) {
           setCurrentQuestionIndex(firstUnanswered);
+        } else {
+          setCurrentQuestionIndex(0);
         }
+      } else {
+        setP1Answers(new Array(multi.roomState.totalQuestions || 5).fill(''));
+        setCurrentQuestionIndex(0);
       }
     }
-  }, [multi.roomState?.stage, multi.roomState?.targetAnswers, multi.isTarget]);
+  }, [multi.roomState?.stage, multi.roomState?.currentManche, multi.isTarget]);
 
   // Save player nicknames to localStorage
   useEffect(() => {
@@ -186,7 +191,7 @@ export default function App() {
     return copy;
   };
 
-  const MAX_PERSISTED_HISTORY = 120;
+  const MAX_PERSISTED_HISTORY = 800;
 
   const getPersistedPlayedQuestionIds = (): Set<string> => {
     try {
@@ -710,6 +715,7 @@ export default function App() {
             globalDifficulty={globalDifficulty}
             questionCount={questionCount}
             roomState={multi.roomState}
+            isHost={multi.isHost}
             isConnecting={multi.isConnecting}
             errorMessage={multi.errorMessage}
             onCreateRoom={(hostName, hostAvatar, cfg) => {

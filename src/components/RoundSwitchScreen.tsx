@@ -34,6 +34,7 @@ export const RoundSwitchScreen: React.FC<RoundSwitchScreenProps> = ({
   onReturnToMenu,
 }) => {
   const nextMancheNumber = completedManche + 1;
+  const [isLaunching, setIsLaunching] = React.useState(false);
 
   useEffect(() => {
     sound.playSuccess();
@@ -132,14 +133,21 @@ export const RoundSwitchScreen: React.FC<RoundSwitchScreenProps> = ({
       <div className="w-full space-y-2.5 pt-4">
         <button
           type="button"
+          disabled={isLaunching}
           onClick={() => {
+            if (isLaunching) return;
+            setIsLaunching(true);
             sound.playTap();
             sound.vibrate(20);
             onStartNextManche();
           }}
-          className="w-full h-14 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white font-display font-bold text-base shadow-xl shadow-rose-950/50 hover:brightness-105 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+          className={`w-full h-14 rounded-2xl font-display font-bold text-base shadow-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
+            isLaunching
+              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105'
+          }`}
         >
-          <span>Lancer la prochaine manche ({nextTarget.name})</span>
+          <span>{isLaunching ? 'Lancement en cours...' : `Lancer la prochaine manche (${nextTarget.name})`}</span>
           <ArrowRight className="w-5 h-5" />
         </button>
 

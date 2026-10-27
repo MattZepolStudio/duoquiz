@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { CategoryId, DifficultyLevel, Player } from '../types/quiz';
-import { CATEGORIES, AVATAR_OPTIONS } from '../data/questions';
+import { CATEGORIES, AVATAR_OPTIONS, INITIAL_QUESTIONS } from '../data/questions';
 import { sound } from '../utils/audio';
 
 interface MainMenuProps {
@@ -734,7 +734,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             </h2>
           </div>
           <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20">
-            120+ questions inédites
+            {INITIAL_QUESTIONS.length.toLocaleString('fr-FR')} questions inédites
           </span>
         </div>
 
@@ -742,7 +742,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           {CATEGORIES.map((category) => {
             const isSelected = selectedCategories.includes(category.id);
             const isCoquin = category.id === 'coquin';
-            const countLabel = category.id === 'custom_ai' ? 'IA infinie' : '24 questions';
+            const categoryCount = INITIAL_QUESTIONS.filter((q) => q.category === category.id).length;
+            const countLabel = category.id === 'custom_ai' ? 'IA infinie' : `${categoryCount} questions`;
 
             return (
               <button

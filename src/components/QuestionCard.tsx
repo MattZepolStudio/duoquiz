@@ -140,6 +140,13 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     isGuesser ? activePlayer.name : otherPlayer.name
   );
 
+  const formatOptionText = (text: string) => {
+    const partnerName = otherPlayer?.name || 'ton/ta partenaire';
+    return text
+      .replace(/\{partner\}/g, partnerName)
+      .replace(/\{target\}/g, isGuesser ? otherPlayer.name : activePlayer.name);
+  };
+
   return (
     <div className="flex flex-col justify-between h-full max-h-full max-w-lg mx-auto w-full px-4 pt-2 pb-5 sm:pb-7 animate-fade-in overflow-hidden select-none">
       {/* Top Header & Progress */}
@@ -380,7 +387,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                   {String.fromCharCode(65 + idx)}
                 </span>
                 <span className="text-xs sm:text-sm font-semibold leading-snug break-words">
-                  {opt}
+                  {formatOptionText(opt)}
                 </span>
               </div>
 

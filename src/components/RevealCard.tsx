@@ -45,6 +45,12 @@ export const RevealCard: React.FC<RevealCardProps> = ({
   onNextRound,
   isLastRound,
 }) => {
+  const [isAdvancing, setIsAdvancing] = React.useState(false);
+
+  useEffect(() => {
+    setIsAdvancing(false);
+  }, [currentIndex, question.id]);
+
   useEffect(() => {
     if (isAutoMatch) {
       sound.playSuccess();
@@ -67,6 +73,13 @@ export const RevealCard: React.FC<RevealCardProps> = ({
     targetPlayer.name,
     guesserPlayer.name
   );
+
+  const formatAnswer = (ans: string) => {
+    if (!ans) return '';
+    return ans
+      .replace(/\{partner\}/g, guesserPlayer?.name || 'ton partenaire')
+      .replace(/\{target\}/g, targetPlayer?.name || 'ton partenaire');
+  };
 
   return (
     <div className="flex flex-col justify-between h-full max-h-full max-w-lg mx-auto w-full px-4 pt-2 pb-5 sm:pb-7 animate-fade-in text-center overflow-hidden select-none">
@@ -148,7 +161,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
                 <span className="truncate">{targetPlayer.name} a répondu :</span>
               </div>
               <p className="text-xs sm:text-sm font-bold text-white leading-snug line-clamp-3">
-                « {targetAnswer} »
+                « {formatAnswer(targetAnswer)} »
               </p>
             </div>
             <span className="text-[9px] text-zinc-500 mt-2 block">
@@ -170,7 +183,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
                 <span className="truncate">{guesserPlayer.name} a deviné :</span>
               </div>
               <p className="text-xs sm:text-sm font-bold text-white leading-snug line-clamp-3">
-                « {guesserAnswer} »
+                « {formatAnswer(guesserAnswer)} »
               </p>
             </div>
             <span className="text-[9px] text-zinc-500 mt-2 block">
@@ -220,12 +233,19 @@ export const RevealCard: React.FC<RevealCardProps> = ({
       <div className="shrink-0 pt-2">
         <button
           type="button"
+          disabled={isAdvancing}
           onClick={() => {
+            if (isAdvancing) return;
+            setIsAdvancing(true);
             sound.playTap();
             sound.vibrate(15);
             onNextRound();
           }}
-          className="w-full h-12 sm:h-13 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-display font-bold text-sm shadow-xl shadow-rose-950/40 hover:brightness-105 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+          className={`w-full h-12 sm:h-13 rounded-2xl font-display font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
+            isAdvancing
+              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-rose-950/40 hover:brightness-105'
+          }`}
         >
           {isLastRound ? (
             <>
@@ -234,7 +254,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
             </>
           ) : (
             <>
-              <span>Question suivante</span>
+              <span>{isAdvancing ? 'Chargement...' : 'Question suivante'}</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}

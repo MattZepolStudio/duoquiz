@@ -66,7 +66,8 @@ export const AVATAR_OPTIONS = [
 ];
 
 /**
- * 525 curated questions (105+ questions per category)
- * Balanced across 3 difficulties: easy (35), medium (35), spicy (35) per category.
+ * 1 575 curated questions (315 questions per category)
+ * Balanced across 3 difficulties: easy (105), medium (105), spicy (105) per category.
  */
 export const INITIAL_QUESTIONS: Question[] = ALL_THEMED_QUESTIONS;
+

@@ -28,6 +28,7 @@ interface MultiplayerSetupScreenProps {
   globalDifficulty: DifficultyLevel;
   questionCount: number;
   roomState: RoomState | null;
+  isHost?: boolean;
   isConnecting: boolean;
   errorMessage: string | null;
   onCreateRoom: (hostName: string, hostAvatar: string, config: RoomConfig) => void;
@@ -43,6 +44,7 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
   globalDifficulty,
   questionCount,
   roomState,
+  isHost = true,
   isConnecting,
   errorMessage,
   onCreateRoom,
@@ -340,32 +342,45 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
           </div>
         </div>
 
-        {/* Start Game Action */}
+        {/* Start Game Action (Only Host can launch, guest sees waiting status) */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-zinc-950 via-zinc-950/95 to-transparent z-40 max-w-lg mx-auto">
-          <button
-            type="button"
-            disabled={!isBothConnected}
-            onClick={() => {
-              sound.playSuccess();
-              onStartGame();
-            }}
-            className={`w-full h-14 rounded-2xl flex items-center justify-center gap-2 font-display font-bold text-base shadow-xl transition-all active:scale-[0.98] ${
-              isBothConnected
-                ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105'
-                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-            }`}
-          >
-            {isBothConnected ? (
-              <>
-                <Play className="w-5 h-5 fill-current" />
-                <span>Lancer la partie à 2 téléphones !</span>
-              </>
-            ) : (
-              <span className="text-xs font-semibold">
-                En attente du deuxième téléphone pour lancer...
-              </span>
-            )}
-          </button>
+          {isHost ? (
+            <button
+              type="button"
+              disabled={!isBothConnected}
+              onClick={() => {
+                sound.playSuccess();
+                onStartGame();
+              }}
+              className={`w-full h-14 rounded-2xl flex items-center justify-center gap-2 font-display font-bold text-base shadow-xl transition-all active:scale-[0.98] ${
+                isBothConnected
+                  ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105'
+                  : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              }`}
+            >
+              {isBothConnected ? (
+                <>
+                  <Play className="w-5 h-5 fill-current" />
+                  <span>Lancer la partie à 2 téléphones !</span>
+                </>
+              ) : (
+                <span className="text-xs font-semibold">
+                  En attente du deuxième téléphone pour lancer...
+                </span>
+              )}
+            </button>
+          ) : (
+            <div className="w-full h-14 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 text-zinc-300 font-display font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-lg">
+              {isBothConnected ? (
+                <>
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
+                  <span>En attente de l'hôte ({roomState?.player1.name || 'Hôte'}) pour lancer...</span>
+                </>
+              ) : (
+                <span className="text-zinc-500">Connexion des deux joueurs en cours...</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
