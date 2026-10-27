@@ -11,7 +11,8 @@ import {
   Pencil, 
   RotateCcw,
   Sliders,
-  X
+  X,
+  AlertCircle
 } from 'lucide-react';
 import { DifficultyLevel, Player, Question } from '../types/quiz';
 import { sound } from '../utils/audio';
@@ -57,7 +58,19 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   const [isListening, setIsListening] = useState<boolean>(false);
   const [showHint, setShowHint] = useState<boolean>(false);
   const [showDifficultyMenu, setShowDifficultyMenu] = useState<boolean>(false);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showQuickValidation = (msg: string) => {
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+    }
+    setValidationMessage(msg);
+    validationTimeoutRef.current = setTimeout(() => {
+      setValidationMessage(null);
+    }, 3500);
+  };
 
   // Sync options when question changes
   useEffect(() => {
@@ -67,7 +80,19 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     setCustomInputValue('');
     setShowHint(false);
     setShowDifficultyMenu(false);
+    setValidationMessage(null);
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+    }
   }, [question.id, currentIndex, initialAnswer]);
+
+  useEffect(() => {
+    return () => {
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (editingIndex !== null) {
@@ -82,6 +107,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     sound.vibrate(12);
     setSelectedAnswer(opt);
     setEditingIndex(null);
+    setValidationMessage(null);
   };
 
   const handleStartEditingSlot = (slotIndex: number, e: React.MouseEvent) => {
@@ -89,6 +115,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     sound.playTap();
     setEditingIndex(slotIndex);
     setCustomInputValue(options[slotIndex] || '');
+    setValidationMessage(null);
   };
 
   const handleCancelEditing = (e?: React.SyntheticEvent) => {
@@ -96,6 +123,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     sound.playTap();
     setEditingIndex(null);
     setCustomInputValue('');
+    setValidationMessage(null);
   };
 
   const handleClearCustomInput = (e: React.MouseEvent) => {
@@ -103,11 +131,17 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     sound.playTap();
     setCustomInputValue('');
     inputRef.current?.focus();
+    showQuickValidation("Réponse supprimée. Tape ta nouvelle réponse ou clique sur Annuler.");
   };
 
   const handleConfirmCustomSlot = (slotIndex: number) => {
     const trimmed = customInputValue.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      sound.vibrate(50);
+      showQuickValidation("La proposition ne peut pas être vide ! Saisis une réponse.");
+      inputRef.current?.focus();
+      return;
+    }
     sound.playTap();
     const updated = [...options];
     updated[slotIndex] = trimmed;
@@ -115,6 +149,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     setSelectedAnswer(trimmed);
     setEditingIndex(null);
     setCustomInputValue('');
+    setValidationMessage(null);
     if (onOptionsChange) {
       onOptionsChange(updated);
     }
@@ -162,6 +197,33 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     return text
       .replace(/\{partner\}/g, partnerName)
       .replace(/\{target\}/g, isGuesser ? otherPlayer.name : activePlayer.name);
+  };
+
+  const handleNextClick = () => {
+    // If user is currently editing a slot
+    if (editingIndex !== null) {
+      const trimmed = customInputValue.trim();
+      if (!trimmed) {
+        sound.vibrate(50);
+        showQuickValidation("La réponse est vide ! Tape une proposition ou clique sur Annuler.");
+        inputRef.current?.focus();
+        return;
+      }
+      sound.vibrate(50);
+      showQuickValidation("Valide d'abord ta réponse avec 'Valider ce choix'.");
+      return;
+    }
+
+    if (!selectedAnswer.trim()) {
+      sound.vibrate(50);
+      showQuickValidation("Merci de sélectionner ou renseigner une réponse pour continuer !");
+      return;
+    }
+
+    sound.playTap();
+    sound.vibrate(15);
+    setValidationMessage(null);
+    onNextQuestion(selectedAnswer, options);
   };
 
   return (
@@ -477,8 +539,26 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         })}
       </div>
 
+      {/* Quick validation alert if answer is missing or left empty */}
+      {validationMessage && (
+        <div className="shrink-0 mb-1 px-3 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs font-semibold flex items-center justify-between gap-2 shadow-lg backdrop-blur-sm animate-pulse">
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="leading-snug">{validationMessage}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setValidationMessage(null)}
+            className="p-1 text-amber-400/80 hover:text-amber-100 shrink-0"
+            aria-label="Fermer le message"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Bottom Navigation CTA Bar */}
-      <div className="shrink-0 pt-2 flex items-center gap-2">
+      <div className="shrink-0 pt-1 flex items-center gap-2">
         {canGoPrev && onPrevQuestion && (
           <button
             type="button"
@@ -495,18 +575,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
         <button
           type="button"
-          disabled={!canProceed}
-          onClick={() => {
-            if (canProceed) {
-              sound.playTap();
-              sound.vibrate(15);
-              onNextQuestion(selectedAnswer, options);
-            }
-          }}
+          onClick={handleNextClick}
           className={`flex-1 h-12 sm:h-13 rounded-2xl flex items-center justify-center gap-2 font-display font-bold text-sm shadow-xl transition-all active:scale-[0.98] ${
-            canProceed
-              ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-rose-950/40 hover:opacity-95'
-              : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+            canProceed && editingIndex === null
+              ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-rose-950/40 hover:opacity-95 cursor-pointer'
+              : 'bg-zinc-800 text-zinc-400 border border-zinc-750 hover:bg-zinc-750 cursor-pointer'
           }`}
         >
           {isGuesser ? (
