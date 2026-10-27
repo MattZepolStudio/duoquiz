@@ -777,6 +777,11 @@ export default function App() {
                     currentIndex={multi.roomState?.p1AnsweredCount || 0}
                     totalCount={multi.roomState?.totalQuestions || 5}
                     isCoquin={multi.roomState?.config.selectedCategories.includes('coquin')}
+                    currentQuestion={
+                      multi.roomState?.questions
+                        ? multi.roomState.questions[multi.roomState.p1AnsweredCount || 0]
+                        : undefined
+                    }
                   />
                 )}
               </>
@@ -817,6 +822,12 @@ export default function App() {
                     currentIndex={multi.roomState?.currentQuestionIndex || 0}
                     totalCount={multi.roomState?.totalQuestions || 5}
                     isCoquin={multi.roomState?.config.selectedCategories.includes('coquin')}
+                    currentQuestion={multi.roomState?.activeQuestion}
+                    mySavedAnswer={
+                      multi.roomState?.targetAnswers
+                        ? multi.roomState.targetAnswers[multi.roomState.currentQuestionIndex || 0]
+                        : undefined
+                    }
                   />
                 )}
               </>
