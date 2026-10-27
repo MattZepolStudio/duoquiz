@@ -50,7 +50,7 @@ export const MultiplayerWaitingScreen: React.FC<MultiplayerWaitingScreenProps> =
   const formattedQuestion = currentQuestion
     ? getFormattedQuestion(
         currentQuestion,
-        waitingFor === 'target_answers' ? 'target' : 'guesser',
+        waitingFor === 'target_answers' ? 'guesser' : 'target',
         waitingFor === 'target_answers' ? partnerName : myName,
         waitingFor === 'target_answers' ? myName : partnerName
       )
@@ -141,7 +141,7 @@ export const MultiplayerWaitingScreen: React.FC<MultiplayerWaitingScreenProps> =
               <>
                 <EyeOff className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
                 <span className="italic text-[11px]">
-                  {partnerName} choisit sa réponse en secret... (options masquées)
+                  {partnerName} choisit sa réponse en secret... Prépare-toi à deviner son choix !
                 </span>
               </>
             ) : (

@@ -193,10 +193,18 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   );
 
   const formatOptionText = (text: string) => {
-    const partnerName = otherPlayer?.name || 'ton/ta partenaire';
+    const targetName = isGuesser ? otherPlayer.name : activePlayer.name;
+    const partnerName = isGuesser ? activePlayer.name : otherPlayer.name;
+
     return text
       .replace(/\{partner\}/g, partnerName)
-      .replace(/\{target\}/g, isGuesser ? otherPlayer.name : activePlayer.name);
+      .replace(/\{target\}/g, targetName)
+      .replace(/\{guesser\}/g, partnerName)
+      .replace(/\bchez moi\b/gi, 'à la maison')
+      .replace(/\bToi sans hésiter\b/gi, `${targetName} sans hésiter`)
+      .replace(/\bToi clairement\b/gi, `${targetName} clairement`)
+      .replace(/\bToi\b/g, targetName)
+      .replace(/\bMoi\b/g, targetName);
   };
 
   const handleNextClick = () => {
@@ -235,13 +243,18 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="text-xl shrink-0">{activePlayer.avatar}</span>
             <div className="min-w-0">
-              <span className="text-xs font-bold text-white uppercase tracking-wider block truncate">
-                {activePlayer.name}
-              </span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-xs font-bold text-white uppercase tracking-wider block truncate">
+                  {activePlayer.name}
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 font-semibold shrink-0">
+                  {isGuesser ? 'Devine' : 'Répond'}
+                </span>
+              </div>
               <span className="text-[11px] text-zinc-400 block truncate">
                 {isGuesser
-                  ? `Devine les choix de ${otherPlayer.name}`
-                  : 'Tes réponses secrètes'}
+                  ? `Devine ce qu'a choisi ${otherPlayer.name}`
+                  : 'Tes réponses secrètes sur toi'}
               </span>
             </div>
           </div>
@@ -347,18 +360,32 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
         {/* Question Card */}
         <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 border border-zinc-800/90 shadow-sm text-left">
-          <div className="text-[11px] font-bold text-rose-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>
-              {isGuesser
-                ? `Que pense ${otherPlayer.name} ?`
-                : 'Ta réponse personnelle :'}
+          <div className="text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-rose-400">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>
+                {isGuesser
+                  ? `🔮 ${activePlayer.name}, devine le choix de ${otherPlayer.name} :`
+                  : `🎯 ${activePlayer.name}, à toi de répondre pour toi :`}
+              </span>
             </span>
           </div>
 
           <h3 className="text-sm sm:text-base font-display font-bold text-white leading-snug">
             {displayedQuestionText}
           </h3>
+
+          <div className="mt-1 flex items-center gap-1 text-[11px]">
+            {isGuesser ? (
+              <span className="text-amber-300/90 font-medium">
+                💡 Choisis ce que {otherPlayer.name} a répondu en secret.
+              </span>
+            ) : (
+              <span className="text-zinc-400 italic">
+                🔒 Réponds sincèrement. {otherPlayer.name} tentera ensuite de deviner ton choix.
+              </span>
+            )}
+          </div>
 
           {question.hint && (
             <div className="mt-2 pt-2 border-t border-zinc-800/80">

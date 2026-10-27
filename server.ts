@@ -125,11 +125,11 @@ Règles impératives :
 1. Les questions doivent porter sur les préférences, souvenirs, manies, rêves ou secrets d'un des partenaires pour que l'autre essaie de deviner.
 2. Ne répète AUCUNE de ces questions récentes : ${JSON.stringify(previousQuestions.slice(-20))}.
 3. Chaque question DOIT contenir :
-   - "question" : formulation neutre
-   - "targetQuestion" : adressé à la personne qui répond en secret pour parler de ses propres goûts/souvenirs avec {partner} (ex: "Quel est ton plat réconfortant préféré après une dure journée avec {partner} ?")
-   - "guesserQuestion" : adressé à l'autre partenaire qui doit deviner (ex: "Quel est le plat réconfortant préféré de {target} selon toi ?")
-   - "options" : exactement 4 choix variés, réalistes et amusants.
-   - "hint" : un petit indice taquin ou complice.
+   - "question" : formulation neutre du sujet abordé (ex: "Quel est le plat réconfortant suprême après une journée difficile ?")
+   - "targetQuestion" : formulé directement à la personne qui répond pour qu'elle parle d'elle-même en toute franchise avec 'tu/ton/ta' (ex: "Quel est ton plat réconfortant suprême après une journée difficile ?"). N'ajoute pas artificiellement 'avec {partner}' si la question porte sur ses goûts ou manies personnelles !
+   - "guesserQuestion" : formulé pour l'autre joueur qui doit deviner ce que {target} a répondu (ex: "Selon toi, quel est le plat réconfortant suprême de {target} après une journée difficile ?")
+   - "options" : exactement 4 choix variés, réalistes, croustillants et amusants.
+   - "hint" : un petit indice complice et bienveillant.
 
 Renvoie UNIQUEMENT un tableau JSON strict :
 [
