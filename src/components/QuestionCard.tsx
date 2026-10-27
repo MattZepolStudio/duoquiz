@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Check, 
   HelpCircle, 
@@ -10,7 +10,8 @@ import {
   ArrowLeft, 
   Pencil, 
   RotateCcw,
-  Sliders
+  Sliders,
+  X
 } from 'lucide-react';
 import { DifficultyLevel, Player, Question } from '../types/quiz';
 import { sound } from '../utils/audio';
@@ -56,6 +57,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   const [isListening, setIsListening] = useState<boolean>(false);
   const [showHint, setShowHint] = useState<boolean>(false);
   const [showDifficultyMenu, setShowDifficultyMenu] = useState<boolean>(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Sync options when question changes
   useEffect(() => {
@@ -66,6 +68,14 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     setShowHint(false);
     setShowDifficultyMenu(false);
   }, [question.id, currentIndex, initialAnswer]);
+
+  useEffect(() => {
+    if (editingIndex !== null) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+    }
+  }, [editingIndex]);
 
   const handleSelectOption = (opt: string) => {
     sound.playTap();
@@ -81,11 +91,18 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     setCustomInputValue(options[slotIndex] || '');
   };
 
-  const handleCancelEditing = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCancelEditing = (e?: React.SyntheticEvent) => {
+    if (e) e.stopPropagation();
     sound.playTap();
     setEditingIndex(null);
     setCustomInputValue('');
+  };
+
+  const handleClearCustomInput = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    sound.playTap();
+    setCustomInputValue('');
+    inputRef.current?.focus();
   };
 
   const handleConfirmCustomSlot = (slotIndex: number) => {
@@ -328,17 +345,32 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={customInputValue}
-                    onChange={(e) => setCustomInputValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleConfirmCustomSlot(idx);
-                    }}
-                    placeholder="Tape ta propre réponse..."
-                    className="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-rose-400"
-                    autoFocus
-                  />
+                  <div className="relative flex-1 flex items-center">
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={customInputValue}
+                      onChange={(e) => setCustomInputValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleConfirmCustomSlot(idx);
+                        if (e.key === 'Escape') handleCancelEditing(e);
+                      }}
+                      placeholder="Tape ta propre réponse..."
+                      className="w-full bg-zinc-950 border border-zinc-700 rounded-xl pl-3 pr-9 py-2 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-rose-400"
+                      autoFocus
+                    />
+                    {customInputValue.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleClearCustomInput}
+                        className="absolute right-2 w-6 h-6 rounded-full bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 flex items-center justify-center transition-all active:scale-90"
+                        title="Supprimer la réponse"
+                        aria-label="Supprimer la réponse"
+                      >
+                        <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </button>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={handleStartMic}
@@ -353,7 +385,33 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                   </button>
                 </div>
 
-                <div className="flex justify-end pt-0.5">
+                <div className="flex items-center justify-between pt-0.5">
+                  {options[idx] !== question.options[idx] ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playTap();
+                        const updated = [...options];
+                        updated[idx] = question.options[idx];
+                        setOptions(updated);
+                        setCustomInputValue(question.options[idx]);
+                        if (selectedAnswer === options[idx]) {
+                          setSelectedAnswer(question.options[idx]);
+                        }
+                        if (onOptionsChange) {
+                          onOptionsChange(updated);
+                        }
+                      }}
+                      className="text-[11px] text-zinc-400 hover:text-rose-300 flex items-center gap-1 transition-colors"
+                      title="Rétablir la proposition par défaut de la question"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Rétablir le choix d'origine</span>
+                    </button>
+                  ) : (
+                    <div />
+                  )}
+
                   <button
                     type="button"
                     onClick={() => handleConfirmCustomSlot(idx)}
