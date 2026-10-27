@@ -238,8 +238,10 @@ export class MultiplayerRoomManager {
         }
 
         if (room.player1.id === msg.playerId) {
-          if (room.player1.ws && room.player1.ws !== ws) {
-            try { room.player1.ws.close(); } catch {}
+          const oldWs = room.player1.ws;
+          if (oldWs && oldWs !== ws) {
+            this.wsToPlayer.delete(oldWs);
+            try { oldWs.close(); } catch {}
           }
           room.player1.ws = ws;
           room.player1.connected = true;
@@ -256,8 +258,10 @@ export class MultiplayerRoomManager {
         }
 
         if (room.player2?.id === msg.playerId) {
-          if (room.player2.ws && room.player2.ws !== ws) {
-            try { room.player2.ws.close(); } catch {}
+          const oldWs = room.player2.ws;
+          if (oldWs && oldWs !== ws) {
+            this.wsToPlayer.delete(oldWs);
+            try { oldWs.close(); } catch {}
           }
           room.player2.ws = ws;
           room.player2.connected = true;
@@ -273,12 +277,18 @@ export class MultiplayerRoomManager {
           return;
         }
 
-        // Fallback reconnection for active in-progress game if a player slot got disconnected
+        // Fallback reconnection for active in-progress game if a player slot got disconnected or is stale
         if (room.stage !== 'lobby') {
+          const now = Date.now();
+          const p2Stale = !room.player2 || !room.player2.connected || !room.player2.ws || room.player2.ws.readyState !== 1 || (now - room.player2.lastActive > 25000);
+          const p1Stale = !room.player1.connected || !room.player1.ws || room.player1.ws.readyState !== 1 || (now - room.player1.lastActive > 25000);
+
           // If player 2 disconnected or connection is inactive, re-attach guest
-          if (room.player2 && (!room.player2.connected || !room.player2.ws || room.player2.ws.readyState !== 1)) {
-            if (room.player2.ws && room.player2.ws !== ws) {
-              try { room.player2.ws.close(); } catch {}
+          if (room.player2 && p2Stale) {
+            const oldWs = room.player2.ws;
+            if (oldWs && oldWs !== ws) {
+              this.wsToPlayer.delete(oldWs);
+              try { oldWs.close(); } catch {}
             }
             room.player2.ws = ws;
             room.player2.connected = true;
@@ -295,9 +305,11 @@ export class MultiplayerRoomManager {
           }
 
           // If player 1 disconnected or connection is inactive, re-attach host
-          if (!room.player1.connected || !room.player1.ws || room.player1.ws.readyState !== 1) {
-            if (room.player1.ws && room.player1.ws !== ws) {
-              try { room.player1.ws.close(); } catch {}
+          if (p1Stale) {
+            const oldWs = room.player1.ws;
+            if (oldWs && oldWs !== ws) {
+              this.wsToPlayer.delete(oldWs);
+              try { oldWs.close(); } catch {}
             }
             room.player1.ws = ws;
             room.player1.connected = true;
@@ -329,8 +341,10 @@ export class MultiplayerRoomManager {
 
         // 1. Exact Reconnection check by playerId
         if (msg.playerId && room.player1.id === msg.playerId) {
-          if (room.player1.ws && room.player1.ws !== ws) {
-            try { room.player1.ws.close(); } catch {}
+          const oldWs = room.player1.ws;
+          if (oldWs && oldWs !== ws) {
+            this.wsToPlayer.delete(oldWs);
+            try { oldWs.close(); } catch {}
           }
           room.player1.ws = ws;
           room.player1.connected = true;
@@ -347,8 +361,10 @@ export class MultiplayerRoomManager {
         }
 
         if (msg.playerId && room.player2?.id === msg.playerId) {
-          if (room.player2.ws && room.player2.ws !== ws) {
-            try { room.player2.ws.close(); } catch {}
+          const oldWs = room.player2.ws;
+          if (oldWs && oldWs !== ws) {
+            this.wsToPlayer.delete(oldWs);
+            try { oldWs.close(); } catch {}
           }
           room.player2.ws = ws;
           room.player2.connected = true;
@@ -366,10 +382,16 @@ export class MultiplayerRoomManager {
 
         // 2. Fallback reconnection for active in-progress game if a player got disconnected
         if (room.stage !== 'lobby') {
-          // If player 2 was disconnected or connection is inactive, re-attach guest
-          if (room.player2 && (!room.player2.connected || !room.player2.ws || room.player2.ws.readyState !== 1)) {
-            if (room.player2.ws && room.player2.ws !== ws) {
-              try { room.player2.ws.close(); } catch {}
+          const now = Date.now();
+          const p2Stale = !room.player2 || !room.player2.connected || !room.player2.ws || room.player2.ws.readyState !== 1 || (now - room.player2.lastActive > 25000);
+          const p1Stale = !room.player1.connected || !room.player1.ws || room.player1.ws.readyState !== 1 || (now - room.player1.lastActive > 25000);
+
+          // Name matching or stale guest re-attachment
+          if (room.player2 && (p2Stale || (msg.playerName && msg.playerName === room.player2.name))) {
+            const oldWs = room.player2.ws;
+            if (oldWs && oldWs !== ws) {
+              this.wsToPlayer.delete(oldWs);
+              try { oldWs.close(); } catch {}
             }
             room.player2.ws = ws;
             room.player2.connected = true;
@@ -387,10 +409,12 @@ export class MultiplayerRoomManager {
             return;
           }
 
-          // If player 1 was disconnected or connection is inactive, re-attach host
-          if (!room.player1.connected || !room.player1.ws || room.player1.ws.readyState !== 1) {
-            if (room.player1.ws && room.player1.ws !== ws) {
-              try { room.player1.ws.close(); } catch {}
+          // Name matching or stale host re-attachment
+          if (p1Stale || (msg.playerName && msg.playerName === room.player1.name)) {
+            const oldWs = room.player1.ws;
+            if (oldWs && oldWs !== ws) {
+              this.wsToPlayer.delete(oldWs);
+              try { oldWs.close(); } catch {}
             }
             room.player1.ws = ws;
             room.player1.connected = true;
@@ -665,18 +689,23 @@ export class MultiplayerRoomManager {
     const meta = this.wsToPlayer.get(ws);
     if (!meta) return;
 
+    this.wsToPlayer.delete(ws);
+
     const room = this.rooms.get(meta.roomCode);
     if (!room) return;
 
-    if (room.player1.id === meta.playerId) {
+    let changed = false;
+    // CRITICAL: Only mark disconnected and clear ws if the socket being closed
+    // IS the current active socket for that player (prevents stale sockets from overwriting reconnected ones)
+    if (room.player1.id === meta.playerId && room.player1.ws === ws) {
       room.player1.connected = false;
       room.player1.ws = undefined;
-    } else if (room.player2?.id === meta.playerId) {
+      changed = true;
+    } else if (room.player2?.id === meta.playerId && room.player2.ws === ws) {
       room.player2.connected = false;
       room.player2.ws = undefined;
+      changed = true;
     }
-
-    this.wsToPlayer.delete(ws);
 
     // If both players left and room is in lobby, delete room
     if (!room.player1.connected && (!room.player2 || !room.player2.connected)) {
@@ -686,6 +715,8 @@ export class MultiplayerRoomManager {
       }
     }
 
-    this.syncRoom(room);
+    if (changed) {
+      this.syncRoom(room);
+    }
   }
 }

@@ -47,6 +47,13 @@ export const RoundSwitchScreen: React.FC<RoundSwitchScreenProps> = ({
     });
   }, []);
 
+  useEffect(() => {
+    if (isLaunching) {
+      const timer = setTimeout(() => setIsLaunching(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLaunching]);
+
   return (
     <div className="flex flex-col items-center justify-between min-h-[calc(100vh-80px)] max-w-lg mx-auto w-full px-4 py-6 animate-fade-in text-center">
       {/* Top Tag */}

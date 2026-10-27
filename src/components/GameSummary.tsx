@@ -129,6 +129,29 @@ export const GameSummary: React.FC<GameSummaryProps> = ({
     });
   }, [isCoquin]);
 
+  // Reset loading states if connection is lost
+  useEffect(() => {
+    if (!isConnected) {
+      setIsLaunchingNext(false);
+      setIsRestarting(false);
+    }
+  }, [isConnected]);
+
+  // Safety timeout to avoid frozen buttons if partner or server fails to respond
+  useEffect(() => {
+    if (isLaunchingNext) {
+      const timer = setTimeout(() => setIsLaunchingNext(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLaunchingNext]);
+
+  useEffect(() => {
+    if (isRestarting) {
+      const timer = setTimeout(() => setIsRestarting(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [isRestarting]);
+
   const handleAskCupidAi = async () => {
     setIsLoadingAi(true);
     sound.playTap();
