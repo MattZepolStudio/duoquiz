@@ -117,7 +117,7 @@ async function startServer() {
 
     // 2. Try Gemini with fallback
     try {
-      const prompt = `Tu es le maître du jeu d'un quizz de couple intimiste, amusant, complice et bienveillant en français appelé DuoQuiz.
+      const prompt = `Tu es le maître du jeu d'un quizz de couple intimiste, amusant, complice et bienveillant en français appelé ParCœur.
 Les deux partenaires s'appellent "${player1 || 'Joueur 1'}" et "${player2 || 'Joueur 2'}".
 Génère ${count} questions INÉDITES et variées pour la catégorie "${category || 'Général'}" et la difficulté "${difficulty || 'medium'}".
 
@@ -282,7 +282,7 @@ Renvoie UNIQUEMENT un JSON :
   }
 
   server.listen(port, () => {
-    console.log(`DuoQuiz server with WebSocket running on port ${port}`);
+    console.log(`ParCœur server with WebSocket running on port ${port}`);
   });
 }
 
