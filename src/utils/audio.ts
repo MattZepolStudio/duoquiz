@@ -192,25 +192,26 @@ class SoundManager {
   }
 
   /**
-   * Discrète vibration haptique ultra-courte (12ms) spécialement conçue
-   * pour le toucher des cartes de réponses (sensation native iOS/Android).
+   * Discrète vibration haptique calibrée (35ms) :
+   * Permet aux moteurs vibrants de franchir leur seuil d'inertie
+   * et de produire un 'clic' perceptible sur tous les smartphones Android.
    */
   hapticSelection() {
-    this.vibrate(12);
+    this.vibrate(35);
   }
 
   /**
    * Vibration plus marquée pour validation ou action principale.
    */
   hapticSuccess() {
-    this.vibrate([15, 45, 20]);
+    this.vibrate([35, 60, 45]);
   }
 
   /**
    * Vibration d'avertissement ou d'erreur de saisie.
    */
   hapticWarning() {
-    this.vibrate([40, 30, 40]);
+    this.vibrate([60, 40, 60]);
   }
 
   /**
