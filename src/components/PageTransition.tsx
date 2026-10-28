@@ -10,29 +10,25 @@ interface PageTransitionProps {
 const pageVariants = {
   enter: {
     opacity: 0,
-    x: 24,
-    scale: 0.985,
-    filter: 'blur(2px)',
+    x: 20,
+    scale: 0.99,
   },
   center: {
     opacity: 1,
     x: 0,
     scale: 1,
-    filter: 'blur(0px)',
   },
   exit: {
     opacity: 0,
-    x: -24,
-    scale: 0.985,
-    filter: 'blur(2px)',
+    x: -20,
+    scale: 0.99,
   },
 };
 
 const pageTransition: Transition = {
-  x: { type: 'spring', stiffness: 340, damping: 32 },
-  opacity: { duration: 0.22, ease: 'easeOut' },
-  scale: { duration: 0.22, ease: 'easeOut' },
-  filter: { duration: 0.22, ease: 'easeOut' },
+  x: { type: 'spring', stiffness: 360, damping: 34 },
+  opacity: { duration: 0.2, ease: 'easeOut' },
+  scale: { duration: 0.2, ease: 'easeOut' },
 };
 
 export const PageTransition: React.FC<PageTransitionProps> = ({
@@ -50,7 +46,6 @@ export const PageTransition: React.FC<PageTransitionProps> = ({
         exit="exit"
         transition={pageTransition}
         className={className}
-        style={{ willChange: 'transform, opacity' }}
       >
         {children}
       </motion.div>

@@ -140,7 +140,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const isCoquinSelected = selectedCategories.includes('coquin');
 
   return (
-    <div className="flex flex-col gap-6 pb-24 pt-2 max-w-lg mx-auto w-full px-4 animate-fade-in">
+    <div className="flex flex-col gap-6 pb-10 pt-2 max-w-lg mx-auto w-full px-4 animate-fade-in">
       {/* Hero Welcome Card */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-950/60 via-zinc-900 to-zinc-900 border border-rose-500/20 p-5 text-center shadow-xl">
         <div className="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/20 rounded-full blur-2xl pointer-events-none" />
@@ -854,43 +854,41 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           ))}
         </div>
       </div>
-      </div>
-      </div>
 
-      {/* 5. Sticky Bottom Play Button (Thumb Reach Zone) - Only when players are confirmed */}
-      {isPlayersConfirmed && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-zinc-950 via-zinc-950/95 to-transparent z-40 max-w-lg mx-auto animate-fade-in">
-          <button
-            type="button"
-            disabled={selectedCategories.length === 0 || isLoadingAi || !canConfirmNames}
-            onClick={() => {
-              if (!canConfirmNames) {
-                sound.playTap();
-                setIsPlayersConfirmed(false);
-                setIsEditingPlayers(true);
-                return;
-              }
-              sound.playSuccess();
-              sound.vibrate(25);
-              onStartGame();
-            }}
-            className={`w-full h-14 rounded-2xl flex items-center justify-center gap-2 font-display font-bold text-base shadow-xl transition-all active:scale-[0.98] ${
-              selectedCategories.length === 0
-                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105'
-            }`}
-          >
-            {isLoadingAi ? (
-              <span>Génération des questions magiques...</span>
-            ) : (
-              <>
-                <Play className="w-5 h-5 fill-current" />
-                <span>Lancer le Quiz de Couple</span>
-              </>
-            )}
-          </button>
-        </div>
-      )}
+      {/* 5. Launch Game Button - Positioned cleanly after settings, never blocking difficulty */}
+      <div className="pt-2">
+        <button
+          type="button"
+          disabled={selectedCategories.length === 0 || isLoadingAi || !canConfirmNames}
+          onClick={() => {
+            if (!canConfirmNames) {
+              sound.playTap();
+              setIsPlayersConfirmed(false);
+              setIsEditingPlayers(true);
+              return;
+            }
+            sound.playSuccess();
+            sound.vibrate(25);
+            onStartGame();
+          }}
+          className={`w-full h-14 rounded-2xl flex items-center justify-center gap-2.5 font-display font-bold text-base shadow-xl transition-all active:scale-[0.98] ${
+            selectedCategories.length === 0
+              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105 shadow-lg shadow-rose-500/25 ring-1 ring-rose-400/30'
+          }`}
+        >
+          {isLoadingAi ? (
+            <span>Génération des questions magiques...</span>
+          ) : (
+            <>
+              <Play className="w-5 h-5 fill-current" />
+              <span>Lancer le Quiz de Couple</span>
+            </>
+          )}
+        </button>
+      </div>
+      </div>
+      </div>
     </div>
   );
 };

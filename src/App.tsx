@@ -731,9 +731,7 @@ export default function App() {
         {/* Smooth Page / Phase Transition wrapper */}
         <PageTransition
           currentKey={currentScreenKey}
-          className={`w-full flex-1 min-h-0 flex flex-col items-center justify-start ${
-            isQuestionPhase ? 'overflow-hidden' : 'overflow-y-auto'
-          }`}
+          className="w-full flex-1 min-h-0 flex flex-col items-center justify-start"
         >
           {/* MULTIPLAYER FLOW (Setup & Lobby only — hidden once game begins) */}
         {!isMultiActive && (stage === 'multiplayer_setup' || (multi.roomState && multi.roomState.stage === 'lobby')) && (
