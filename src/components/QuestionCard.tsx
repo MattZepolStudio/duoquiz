@@ -442,6 +442,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.22, delay: idx * 0.035, ease: 'easeOut' }}
               whileTap={{ scale: 0.985 }}
+              onPointerDown={() => sound.hapticSelection()}
               onClick={() => handleSelectOption(opt)}
               role="button"
               tabIndex={0}
