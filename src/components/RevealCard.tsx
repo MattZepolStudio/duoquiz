@@ -7,10 +7,10 @@ import {
   ArrowRight, 
   Trophy, 
   MessageCircle, 
-  ThumbsUp,
-  HelpCircle,
+  ThumbsUp, 
+  Zap,
   Flame,
-  Zap
+  CheckCircle2
 } from 'lucide-react';
 import { Player, Question } from '../types/quiz';
 import { sound } from '../utils/audio';
@@ -64,28 +64,26 @@ export const RevealCard: React.FC<RevealCardProps> = ({
     sound.playSuccess();
     sound.vibrate([25, 45, 25]);
     confetti({
-      particleCount: 70,
-      spread: 75,
-      origin: { y: 0.65 },
-      colors: ['#f43f5e', '#ec4899', '#fb7185', '#fda4af', '#facc15'],
+      particleCount: 55,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#f43f5e', '#fb7185', '#f59e0b', '#ec4899', '#ffffff'],
     });
 
-    // Generate floating hearts
-    const hearts = Array.from({ length: 9 }).map((_, i) => ({
+    const hearts = Array.from({ length: 7 }).map((_, i) => ({
       id: Date.now() + i,
       left: 15 + Math.random() * 70,
-      delay: Math.random() * 0.4,
-      size: 14 + Math.random() * 12,
+      delay: Math.random() * 0.35,
+      size: 14 + Math.random() * 10,
     }));
     setFloatingHearts(hearts);
   };
 
   const triggerMismatchReaction = () => {
     sound.playMismatch();
-    sound.vibrate([45, 30]);
+    sound.vibrate([40, 25]);
   };
 
-  // Skip animation to immediately show both answers
   const handleFastForward = () => {
     if (evaluationRevealed) return;
     clearAllTimers();
@@ -99,30 +97,27 @@ export const RevealCard: React.FC<RevealCardProps> = ({
     }
   };
 
-  // Launch sequential 3D suspense on question mount or change
   useEffect(() => {
-    setIsAdvancing(false);
+    clearAllTimers();
     setTargetFlipped(false);
     setGuesserFlipped(false);
     setEvaluationRevealed(false);
+    setIsAdvancing(false);
     setFloatingHearts([]);
-    clearAllTimers();
 
-    // 1. Flip Target Answer card at 350ms
+    // 1. Reveal Target's real answer
     const t1 = setTimeout(() => {
       setTargetFlipped(true);
       sound.playCardFlip();
-      sound.vibrate(10);
-    }, 350);
+    }, 550);
 
-    // 2. Flip Guesser Answer card at 1050ms
+    // 2. Reveal Guesser's guess
     const t2 = setTimeout(() => {
       setGuesserFlipped(true);
       sound.playCardFlip();
-      sound.vibrate(10);
-    }, 1050);
+    }, 1250);
 
-    // 3. Reveal Match/Mismatch decision with celebratory effects at 1650ms
+    // 3. Final verdict
     const t3 = setTimeout(() => {
       setEvaluationRevealed(true);
       if (scoreAwarded) {
@@ -130,12 +125,11 @@ export const RevealCard: React.FC<RevealCardProps> = ({
       } else {
         triggerMismatchReaction();
       }
-    }, 1650);
+    }, 1900);
 
     timersRef.current = [t1, t2, t3];
-
     return () => clearAllTimers();
-  }, [currentIndex, question.id]);
+  }, [currentIndex, scoreAwarded]);
 
   const displayedQuestionText = getFormattedQuestion(
     question,
@@ -144,92 +138,95 @@ export const RevealCard: React.FC<RevealCardProps> = ({
     guesserPlayer.name
   );
 
-  const formatAnswer = (ans: string) => {
-    if (!ans) return '';
-    return ans
-      .replace(/\{partner\}/g, guesserPlayer?.name || 'ton partenaire')
-      .replace(/\{target\}/g, targetPlayer?.name || 'ton partenaire');
+  const formatAnswer = (text: string) => {
+    if (!text) return '—';
+    return text
+      .replace(/\{partner\}/g, guesserPlayer.name)
+      .replace(/\{target\}/g, targetPlayer.name)
+      .replace(/\{guesser\}/g, guesserPlayer.name);
   };
 
   const isEffectiveMatch = scoreAwarded;
 
   return (
     <div 
-      className="flex flex-col justify-between h-full max-h-full max-w-lg mx-auto w-full px-4 pt-2 pb-5 sm:pb-7 animate-fade-in text-center overflow-hidden select-none relative"
+      className="flex flex-col justify-between h-full max-h-full max-w-lg mx-auto w-full px-4 pt-2 pb-6 animate-fade-in overflow-hidden select-none relative z-10"
       onClick={!evaluationRevealed ? handleFastForward : undefined}
     >
-      {/* Floating hearts container on match */}
-      {floatingHearts.length > 0 && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
-          {floatingHearts.map((h) => (
-            <div
-              key={h.id}
-              className="absolute bottom-16 animate-heart-float text-rose-500 drop-shadow-md"
-              style={{
-                left: `${h.left}%`,
-                animationDelay: `${h.delay}s`,
-                fontSize: `${h.size}px`,
-              }}
-            >
-              💖
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Floating Confetti Hearts */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+        {floatingHearts.map((h) => (
+          <div
+            key={h.id}
+            className="absolute bottom-20 text-rose-500 animate-heart-float"
+            style={{
+              left: `${h.left}%`,
+              animationDelay: `${h.delay}s`,
+              fontSize: `${h.size}px`,
+            }}
+          >
+            ❤️
+          </div>
+        ))}
+      </div>
 
-      {/* Top Status */}
-      <div className="shrink-0 space-y-1">
-        <div className="flex items-center justify-between">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-semibold text-zinc-300">
-            <MessageCircle className="w-3 h-3 text-rose-400" />
+      {/* ========================================================
+          1. DYNAMIC ISLAND FLOATING HEADER & PROGRESS
+         ======================================================== */}
+      <div className="shrink-0 space-y-2.5">
+        <div className="ios-glass rounded-full px-4 py-2 flex items-center justify-between shadow-lg shadow-black/40 border border-white/[0.08]">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-200">
+            <MessageCircle className="w-3.5 h-3.5 text-rose-400" />
             <span>Débrief complice</span>
           </div>
 
           <div className="flex items-center gap-2">
             {!evaluationRevealed && (
-              <span className="text-[10px] text-zinc-500 flex items-center gap-1">
-                <Zap className="w-3 h-3 text-amber-400 animate-pulse" />
-                <span>Touche pour accélérer</span>
+              <span className="text-[10px] text-zinc-400 flex items-center gap-1">
+                <Zap className="w-3 h-3 text-amber-300 animate-pulse" />
+                <span>Toucher pour passer</span>
               </span>
             )}
-            <span className="text-[11px] font-bold text-zinc-400 tabular-nums px-2 py-0.5 bg-zinc-900/80 rounded-full border border-zinc-800">
+            <span className="text-xs font-bold text-white tabular-nums px-2.5 py-0.5 bg-white/[0.06] rounded-full border border-white/[0.08]">
               {currentIndex + 1} / {totalCount}
             </span>
           </div>
         </div>
 
         {/* Linear progress bar */}
-        <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-rose-400 transition-all duration-300"
+            className="h-full bg-gradient-to-r from-emerald-500 via-rose-500 to-amber-400 transition-all duration-300 rounded-full"
             style={{ width: `${((currentIndex + 1) / totalCount) * 100}%` }}
           />
         </div>
 
         {/* Question Reminder */}
-        <p className="text-[11px] sm:text-xs text-zinc-300 font-semibold max-w-xs mx-auto pt-0.5 line-clamp-2">
+        <p className="text-xs sm:text-sm text-zinc-300 font-medium max-w-sm mx-auto pt-0.5 line-clamp-2 italic">
           « {displayedQuestionText} »
         </p>
       </div>
 
-      {/* Main Reveal Face-Off Cards Area */}
-      <div className="flex-1 min-h-0 flex flex-col justify-center space-y-2.5 sm:space-y-3.5 my-1">
-        {/* Match / Mismatch / Suspense Banner */}
-        <div className="min-h-[58px] flex items-center justify-center">
+      {/* ========================================================
+          2. RESULT BANNER & COMPARATIVE CARDS
+         ======================================================== */}
+      <div className="flex-1 min-h-0 flex flex-col justify-center space-y-3.5 my-2">
+        {/* Triumphant Yet Elegant Result Banner */}
+        <div className="min-h-[64px] flex items-center justify-center">
           {!evaluationRevealed ? (
-            <div className="w-full p-2.5 sm:p-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/50 flex items-center justify-center gap-2 text-zinc-400 animate-pulse shadow-sm">
-              <Sparkles className="w-4 h-4 text-rose-400 animate-spin" style={{ animationDuration: '3s' }} />
-              <span className="text-xs font-semibold text-zinc-300">
+            <div className="w-full p-3 rounded-2xl ios-glass flex items-center justify-center gap-2 text-zinc-300 shadow-md">
+              <Sparkles className="w-4 h-4 text-amber-300 animate-spin" style={{ animationDuration: '2.5s' }} />
+              <span className="text-xs font-semibold">
                 Révélation des réponses en direct...
               </span>
             </div>
           ) : isEffectiveMatch ? (
-            <div className="w-full p-2.5 sm:p-3 rounded-2xl border border-emerald-500/60 bg-gradient-to-r from-emerald-950/80 via-emerald-900/50 to-emerald-950/80 text-emerald-200 flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-950/40 animate-shockwave relative overflow-hidden">
-              <div className="w-7 h-7 rounded-full bg-emerald-500/25 text-emerald-400 flex items-center justify-center border border-emerald-500/50 shrink-0">
-                <Check className="w-4 h-4 stroke-[3]" />
+            <div className="w-full p-3.5 rounded-2xl border border-emerald-500/50 bg-gradient-to-r from-emerald-950/70 via-[#102a20]/80 to-emerald-950/70 text-emerald-200 flex items-center justify-center gap-3 shadow-xl shadow-emerald-950/50 animate-fade-in relative overflow-hidden backdrop-blur-xl">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center border border-emerald-400/50 shrink-0 shadow-inner">
+                <Check className="w-5 h-5 stroke-[3]" />
               </div>
               <div className="text-left">
-                <span className="font-display font-bold text-xs sm:text-sm block text-white">
+                <span className="font-display font-extrabold text-sm sm:text-base block text-white tracking-tight">
                   C'est un Match parfait ! 🎉
                 </span>
                 <span className="text-[11px] text-emerald-300/90 font-medium">
@@ -238,49 +235,49 @@ export const RevealCard: React.FC<RevealCardProps> = ({
               </div>
             </div>
           ) : (
-            <div className="w-full p-2.5 sm:p-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-950 text-zinc-300 flex items-center justify-center gap-2.5 shadow-md animate-gentle-shake">
-              <div className="w-7 h-7 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/40 shrink-0">
+            <div className="w-full p-3.5 rounded-2xl border border-amber-500/30 bg-[#16141a]/90 text-zinc-300 flex items-center justify-center gap-3 shadow-md backdrop-blur-xl animate-fade-in">
+              <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center border border-amber-500/40 shrink-0">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div className="text-left">
-                <span className="font-display font-bold text-xs sm:text-sm block text-white">
+                <span className="font-display font-bold text-sm block text-white">
                   Pas tout à fait pareil ! 🤔
                 </span>
                 <span className="text-[10px] text-zinc-400">
-                  Débattez ou accordez le point si vous étiez d'accord.
+                  Débattez ou accordez le point si vous étiez d'accord sur le fond.
                 </span>
               </div>
             </div>
           )}
         </div>
 
-        {/* 3D Comparison Cards Grid */}
-        <div className="grid grid-cols-2 gap-2.5 text-left">
-          {/* 1. Target Card (Lucas) */}
-          <div className="perspective-1000 h-[120px] sm:h-[135px] w-full">
+        {/* Distinct Comparative Floating Cards */}
+        <div className="grid grid-cols-2 gap-3 text-left">
+          {/* Card 1: Target Player (Sensual Rose Theme) */}
+          <div className="perspective-1000 h-[135px] sm:h-[145px] w-full">
             <div
               className={`relative w-full h-full transition-transform duration-700 transform-style-3d cursor-pointer ${
                 targetFlipped ? 'rotate-y-180' : ''
               }`}
             >
-              {/* Front (Mystery / Face cachée) */}
-              <div className="backface-hidden absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 border border-zinc-800/90 p-3 flex flex-col items-center justify-center shadow-md">
-                <div className="w-8 h-8 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-300 font-bold text-sm shadow-inner animate-pulse mb-1">
+              {/* Front Mystery */}
+              <div className="backface-hidden absolute inset-0 w-full h-full rounded-[24px] ios-glass p-3.5 flex flex-col items-center justify-center shadow-lg border border-white/[0.08]">
+                <div className="w-9 h-9 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-300 font-bold text-sm mb-1.5 shadow-inner animate-pulse">
                   ?
                 </div>
-                <div className="flex items-center gap-1 text-[11px] font-semibold text-rose-300">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-200">
                   <span>{targetPlayer.avatar}</span>
                   <span className="truncate">{targetPlayer.name}</span>
                 </div>
-                <span className="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">
+                <span className="text-[9px] text-zinc-500 uppercase tracking-widest mt-1">
                   Réponse secrète
                 </span>
               </div>
 
-              {/* Back (Revealed Answer / Face visible) */}
-              <div className="backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-2xl bg-zinc-900/95 border border-rose-500/40 p-3 flex flex-col justify-between shadow-md">
+              {/* Back Revealed Answer */}
+              <div className="backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-[24px] bg-gradient-to-br from-rose-950/40 via-zinc-900/95 to-black border border-rose-500/40 p-3.5 flex flex-col justify-between shadow-xl backdrop-blur-xl">
                 <div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-rose-400 mb-1">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-rose-300 mb-1">
                     <span>{targetPlayer.avatar}</span>
                     <span className="truncate">{targetPlayer.name} a répondu :</span>
                   </div>
@@ -288,45 +285,47 @@ export const RevealCard: React.FC<RevealCardProps> = ({
                     « {formatAnswer(targetAnswer)} »
                   </p>
                 </div>
-                <div className="flex items-center justify-between text-[9px] text-zinc-500 pt-1 border-t border-zinc-800/60">
-                  <span>Réponse personnelle</span>
-                  <span className="text-rose-400/80 font-semibold">Authentique</span>
+                <div className="flex items-center justify-between text-[9px] text-zinc-400 pt-1.5 border-t border-white/[0.06]">
+                  <span>Réponse réelle</span>
+                  <span className="text-rose-400 font-bold px-1.5 py-0.2 rounded bg-rose-500/15 border border-rose-500/30">
+                    Authentique
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 2. Guesser Card (Julie) */}
-          <div className="perspective-1000 h-[120px] sm:h-[135px] w-full">
+          {/* Card 2: Guesser Player (Warm Amber/Coral Theme) */}
+          <div className="perspective-1000 h-[135px] sm:h-[145px] w-full">
             <div
               className={`relative w-full h-full transition-transform duration-700 transform-style-3d cursor-pointer ${
                 guesserFlipped ? 'rotate-y-180' : ''
               }`}
             >
-              {/* Front (Mystery / Face cachée) */}
-              <div className="backface-hidden absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 border border-zinc-800/90 p-3 flex flex-col items-center justify-center shadow-md">
-                <div className="w-8 h-8 rounded-full bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-300 font-bold text-sm shadow-inner animate-pulse mb-1">
+              {/* Front Mystery */}
+              <div className="backface-hidden absolute inset-0 w-full h-full rounded-[24px] ios-glass p-3.5 flex flex-col items-center justify-center shadow-lg border border-white/[0.08]">
+                <div className="w-9 h-9 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-300 font-bold text-sm mb-1.5 shadow-inner animate-pulse">
                   ?
                 </div>
-                <div className="flex items-center gap-1 text-[11px] font-semibold text-pink-300">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-200">
                   <span>{guesserPlayer.avatar}</span>
                   <span className="truncate">{guesserPlayer.name}</span>
                 </div>
-                <span className="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">
-                  Pronostic
+                <span className="text-[9px] text-zinc-500 uppercase tracking-widest mt-1">
+                  Devinette
                 </span>
               </div>
 
-              {/* Back (Revealed Answer / Face visible) */}
+              {/* Back Revealed Answer */}
               <div
-                className={`backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-2xl p-3 flex flex-col justify-between shadow-md transition-colors ${
+                className={`backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-[24px] p-3.5 flex flex-col justify-between shadow-xl backdrop-blur-xl transition-all ${
                   evaluationRevealed && isEffectiveMatch
-                    ? 'bg-emerald-950/30 border-2 border-emerald-500/70 ring-1 ring-emerald-500/30'
-                    : 'bg-zinc-900/95 border border-zinc-800'
+                    ? 'bg-gradient-to-br from-emerald-950/40 via-zinc-900/95 to-black border-2 border-emerald-400/80 ring-2 ring-emerald-500/20'
+                    : 'bg-gradient-to-br from-amber-950/30 via-zinc-900/95 to-black border border-amber-500/40'
                 }`}
               >
                 <div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-pink-400 mb-1">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-300 mb-1">
                     <span>{guesserPlayer.avatar}</span>
                     <span className="truncate">{guesserPlayer.name} a deviné :</span>
                   </div>
@@ -334,12 +333,14 @@ export const RevealCard: React.FC<RevealCardProps> = ({
                     « {formatAnswer(guesserAnswer)} »
                   </p>
                 </div>
-                <div className="flex items-center justify-between text-[9px] text-zinc-500 pt-1 border-t border-zinc-800/60">
+                <div className="flex items-center justify-between text-[9px] text-zinc-400 pt-1.5 border-t border-white/[0.06]">
                   <span>Pronostic</span>
                   {evaluationRevealed && (
                     <span
-                      className={`font-semibold ${
-                        isEffectiveMatch ? 'text-emerald-400' : 'text-zinc-500'
+                      className={`font-bold px-1.5 py-0.2 rounded ${
+                        isEffectiveMatch 
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+                          : 'bg-zinc-800 text-zinc-400'
                       }`}
                     >
                       {isEffectiveMatch ? 'Match !' : 'Différent'}
@@ -351,9 +352,9 @@ export const RevealCard: React.FC<RevealCardProps> = ({
           </div>
         </div>
 
-        {/* Manual Override Button if not auto match and evaluation is shown */}
+        {/* Manual Override if disagreed */}
         {evaluationRevealed && !isAutoMatch && (
-          <div className="pt-0.5 animate-fade-in">
+          <div className="pt-1 animate-fade-in">
             {!scoreAwarded ? (
               <button
                 type="button"
@@ -361,7 +362,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
                   triggerMatchCelebration();
                   onConfirmMatch();
                 }}
-                className="w-full py-2 px-3 rounded-xl bg-zinc-900/90 border border-zinc-700/80 text-[11px] font-semibold text-zinc-200 hover:text-white hover:border-emerald-500/50 flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-sm"
+                className="w-full py-2.5 px-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-xs font-semibold text-zinc-200 hover:text-white flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md"
               >
                 <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
                 <span>On était d'accord sur le fond ! (Accorder le point)</span>
@@ -373,7 +374,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
                   sound.playTap();
                   onRejectMatch();
                 }}
-                className="text-[11px] text-zinc-400 hover:text-zinc-300 underline"
+                className="text-xs text-zinc-400 hover:text-zinc-200 underline"
               >
                 Annuler le point accordé
               </button>
@@ -382,7 +383,9 @@ export const RevealCard: React.FC<RevealCardProps> = ({
         )}
       </div>
 
-      {/* Next Step CTA */}
+      {/* ========================================================
+          3. NEXT CTA BUTTON (Large Shimmering Button)
+         ======================================================== */}
       <div className="shrink-0 pt-2">
         <button
           type="button"
@@ -394,10 +397,10 @@ export const RevealCard: React.FC<RevealCardProps> = ({
             sound.vibrate(15);
             onNextRound();
           }}
-          className={`w-full h-12 sm:h-13 rounded-2xl font-display font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
+          className={`w-full h-14 rounded-2xl font-display font-bold text-sm sm:text-base shadow-xl transition-all flex items-center justify-center gap-2.5 active:scale-[0.98] ${
             isAdvancing
-              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-rose-950/40 hover:brightness-105 cursor-pointer'
+              ? 'bg-white/[0.05] text-zinc-500 cursor-not-allowed border border-white/[0.05]'
+              : 'bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 text-white shadow-rose-950/60 hover:brightness-105 animate-shimmer cursor-pointer border border-white/20'
           }`}
         >
           {isLastRound ? (
@@ -416,3 +419,5 @@ export const RevealCard: React.FC<RevealCardProps> = ({
     </div>
   );
 };
+
+export default RevealCard;

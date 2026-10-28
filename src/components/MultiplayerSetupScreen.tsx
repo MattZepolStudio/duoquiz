@@ -352,10 +352,10 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
                 sound.playSuccess();
                 onStartGame();
               }}
-              className={`w-full h-14 rounded-2xl flex items-center justify-center gap-2 font-display font-bold text-base shadow-xl transition-all active:scale-[0.98] ${
+              className={`w-full h-15 rounded-2xl flex items-center justify-center gap-2.5 font-display font-bold text-base shadow-2xl transition-all active:scale-[0.98] ${
                 isBothConnected
-                  ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-rose-950/50 hover:brightness-105'
-                  : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                  ? 'bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 text-white shadow-rose-950/70 hover:brightness-105 animate-shimmer border border-white/20'
+                  : 'bg-white/[0.05] text-zinc-500 cursor-not-allowed border border-white/[0.05]'
               }`}
             >
               {isBothConnected ? (

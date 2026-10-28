@@ -109,12 +109,12 @@ export const MultiplayerWaitingScreen: React.FC<MultiplayerWaitingScreenProps> =
 
       {/* Live Question Card Display */}
       {currentQuestion && (
-        <div className="w-full max-w-md my-auto py-3 px-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 shadow-xl text-left space-y-3 animate-fade-in backdrop-blur-sm">
+        <div className="w-full max-w-md my-auto py-4 px-5 rounded-[26px] ios-glass shadow-2xl text-left space-y-3 animate-fade-in border border-white/[0.08]">
           <div className="flex items-center justify-between text-[11px] text-zinc-400 font-semibold uppercase tracking-wider">
             <span className="text-zinc-400">
               Question {Math.min(totalCount, currentIndex + 1)} sur {totalCount}
             </span>
-            <span className="text-rose-400 font-bold px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20">
+            <span className="text-rose-300 font-bold px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08]">
               {currentQuestion.category}
             </span>
           </div>
@@ -125,7 +125,7 @@ export const MultiplayerWaitingScreen: React.FC<MultiplayerWaitingScreenProps> =
 
           {/* If waiting for guesser: show what the waiting target answered */}
           {waitingFor === 'guesser_turn' && mySavedAnswer && (
-            <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-left">
+            <div className="p-3.5 rounded-2xl bg-white/[0.05] border border-rose-500/30 text-left">
               <div className="text-[10px] font-bold uppercase tracking-wider text-rose-300 mb-0.5">
                 Ta réponse enregistrée :
               </div>
