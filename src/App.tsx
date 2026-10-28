@@ -26,6 +26,7 @@ import { ConfirmQuitModal } from './components/ConfirmQuitModal';
 import { useMultiplayer } from './utils/useMultiplayer';
 import { MultiplayerSetupScreen } from './components/MultiplayerSetupScreen';
 import { MultiplayerWaitingScreen } from './components/MultiplayerWaitingScreen';
+import { PageTransition } from './components/PageTransition';
 import { initAppUrl } from './utils/appUrl';
 
 export default function App() {
@@ -630,6 +631,27 @@ export default function App() {
     ? multi.roomState?.stage === 'p1_series' || multi.roomState?.stage === 'p2_turn' || multi.roomState?.stage === 'reveal_turn'
     : stage === 'p1_series' || stage === 'p2_turn' || stage === 'reveal_turn';
 
+  // Screen transition key determining phase and manche transitions
+  const currentScreenKey = isMultiActive
+    ? `multi_${multi.roomState?.stage}_m${multi.roomState?.currentManche || 1}`
+    : stage === 'multiplayer_setup'
+    ? 'multiplayer_setup'
+    : stage === 'menu'
+    ? 'menu'
+    : stage === 'p1_series'
+    ? `p1_series_m${currentManche}`
+    : stage === 'handover'
+    ? `handover_m${currentManche}`
+    : stage === 'p2_turn'
+    ? `p2_turn_m${currentManche}`
+    : stage === 'reveal_turn'
+    ? `reveal_turn_m${currentManche}_q${currentQuestionIndex}`
+    : stage === 'round_switch'
+    ? `round_switch_m${currentManche}`
+    : stage === 'summary'
+    ? 'summary'
+    : stage;
+
   return (
     <div className={`h-[100dvh] max-h-[100dvh] flex flex-col bg-zinc-950 text-zinc-100 selection:bg-rose-500 selection:text-white ${isQuestionPhase ? 'overflow-hidden' : 'overflow-y-auto'}`}>
       {/* Top Header Bar */}
@@ -679,7 +701,7 @@ export default function App() {
       <main className={`flex-1 min-h-0 flex flex-col items-center w-full ${isQuestionPhase ? 'overflow-hidden justify-start' : 'overflow-y-auto justify-start'}`}>
         {/* Partner Disconnected Warning in Multiplayer */}
         {isMultiActive && multi.partnerPlayer && !multi.partnerPlayer.connected && (
-          <div className="w-full max-w-lg px-4 pt-2 animate-fade-in">
+          <div className="w-full max-w-lg px-4 pt-2 animate-fade-in shrink-0">
             <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center gap-3 text-amber-200 text-xs shadow-lg animate-pulse">
               <span className="text-xl">⚠️</span>
               <div className="flex-1 text-left">
@@ -696,7 +718,7 @@ export default function App() {
 
         {/* Local Reconnecting Banner */}
         {multi.isReconnecting && (
-          <div className="w-full max-w-lg px-4 pt-2 animate-fade-in">
+          <div className="w-full max-w-lg px-4 pt-2 animate-fade-in shrink-0">
             <div className="p-3 rounded-2xl bg-rose-500/15 border border-rose-500/40 flex items-center gap-3 text-rose-200 text-xs shadow-lg">
               <div className="w-4 h-4 border-2 border-rose-400 border-t-transparent rounded-full animate-spin shrink-0" />
               <div className="flex-1 font-medium text-left">
@@ -706,7 +728,14 @@ export default function App() {
           </div>
         )}
 
-        {/* MULTIPLAYER FLOW (Setup & Lobby only — hidden once game begins) */}
+        {/* Smooth Page / Phase Transition wrapper */}
+        <PageTransition
+          currentKey={currentScreenKey}
+          className={`w-full flex-1 min-h-0 flex flex-col items-center justify-start ${
+            isQuestionPhase ? 'overflow-hidden' : 'overflow-y-auto'
+          }`}
+        >
+          {/* MULTIPLAYER FLOW (Setup & Lobby only — hidden once game begins) */}
         {!isMultiActive && (stage === 'multiplayer_setup' || (multi.roomState && multi.roomState.stage === 'lobby')) && (
           <MultiplayerSetupScreen
             player1={player1}
@@ -1052,6 +1081,7 @@ export default function App() {
             )}
           </>
         )}
+        </PageTransition>
       </main>
 
       {/* Rules & Help Modal */}

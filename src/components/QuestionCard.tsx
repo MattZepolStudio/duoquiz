@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'motion/react';
 import { 
   Check, 
   HelpCircle, 
@@ -359,7 +360,13 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         </div>
 
         {/* Question Card */}
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 border border-zinc-800/90 shadow-sm text-left">
+        <motion.div
+          key={question.id}
+          initial={{ opacity: 0, y: 10, scale: 0.99 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 border border-zinc-800/90 shadow-sm text-left"
+        >
           <div className="text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-rose-400">
               <Sparkles className="w-3.5 h-3.5" />
@@ -407,7 +414,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               )}
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* Exactly 4 Options Grid (Comfortable height & touch targets) */}
@@ -516,12 +523,16 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
           // Normal option card
           return (
-            <div
-              key={idx}
+            <motion.div
+              key={`${question.id}_opt_${idx}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, delay: idx * 0.035, ease: 'easeOut' }}
+              whileTap={{ scale: 0.985 }}
               onClick={() => handleSelectOption(opt)}
               role="button"
               tabIndex={0}
-              className={`w-full px-3.5 py-3 sm:py-3.5 rounded-2xl flex items-center justify-between text-left transition-all border cursor-pointer active:scale-[0.99] ${
+              className={`w-full px-3.5 py-3 sm:py-3.5 rounded-2xl flex items-center justify-between text-left transition-all border cursor-pointer ${
                 isSelected
                   ? 'bg-rose-500/20 border-rose-500 text-white shadow-md shadow-rose-950/40 ring-1 ring-rose-500'
                   : 'bg-zinc-900/80 border-zinc-800/90 text-zinc-200 hover:bg-zinc-850 hover:text-white'
@@ -561,7 +572,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                   {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>
