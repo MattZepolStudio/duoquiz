@@ -1,4 +1,4 @@
-// Procedural Web Audio Synthesizer & Haptics for DuoQuiz
+// Procedural Web Audio Synthesizer & Haptics for ParCœur
 
 class SoundManager {
   private ctx: AudioContext | null = null;

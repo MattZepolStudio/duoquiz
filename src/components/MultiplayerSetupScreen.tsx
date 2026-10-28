@@ -128,8 +128,8 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Rejoins-moi sur DuoQuiz !',
-          text: `Rejoins ma partie DuoQuiz en direct :`,
+          title: 'Rejoins-moi sur ParCœur !',
+          text: `Rejoins ma partie ParCœur en direct :`,
           url: shareUrl,
         });
         return;

@@ -1,5 +1,5 @@
 /**
- * Helper to get the correct URL for DuoQuiz 2-phone mode in AI Studio.
+ * Helper to get the correct URL for ParCœur 2-phone mode in AI Studio.
  */
 
 const KNOWN_DEV_URL = 'https://ais-dev-xgcintqjmavn5fxhzbjocg-379362514205.europe-west2.run.app';

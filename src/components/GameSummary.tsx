@@ -204,9 +204,9 @@ export const GameSummary: React.FC<GameSummaryProps> = ({
 
   const handleShare = () => {
     sound.playTap();
-    const text = `On a fait ${matchPercentage}% de télépathie sur DuoQuiz ! Titre : ${activeTitle}`;
+    const text = `On a fait ${matchPercentage}% de télépathie sur ParCœur ! Titre : ${activeTitle}`;
     if (navigator.share) {
-      navigator.share({ title: 'DuoQuiz', text, url: window.location.href }).catch(() => {});
+      navigator.share({ title: 'ParCœur', text, url: window.location.href }).catch(() => {});
     } else {
       navigator.clipboard.writeText(text);
       setCopiedLink(true);

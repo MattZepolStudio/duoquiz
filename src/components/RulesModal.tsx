@@ -47,7 +47,7 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
               <h3 className="text-base sm:text-lg font-display font-bold text-white flex items-center gap-1.5">
                 <span>Règles de</span>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-pink-400">
-                  DuoQuiz
+                  ParCœur
                 </span>
               </h3>
               <p className="text-[11px] text-zinc-400">

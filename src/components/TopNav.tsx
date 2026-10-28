@@ -40,14 +40,14 @@ export const TopNav: React.FC<TopNavProps> = ({
           inGame ? 'cursor-pointer hover:opacity-90 active:scale-95' : 'cursor-default'
         }`}
         title={inGame ? 'Retourner au menu' : undefined}
-        aria-label={inGame ? 'Retourner au menu principal' : 'DuoQuiz'}
+        aria-label={inGame ? 'Retourner au menu principal' : 'ParCœur'}
       >
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-md shadow-rose-950/50 group-hover:shadow-rose-900/60 transition-shadow">
           <Sparkles className="w-4 h-4 text-white" />
         </div>
         <div className="flex flex-col">
           <span className="font-display font-bold text-lg tracking-tight text-white leading-none">
-            Duo<span className="text-rose-400">Quiz</span>
+            Par<span className="text-rose-400">Cœur</span>
           </span>
           {inGame && (
             <span className="text-[10px] text-zinc-400 group-hover:text-rose-300 transition-colors font-medium">
