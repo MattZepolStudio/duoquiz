@@ -16,9 +16,9 @@ export const ConfirmQuitModal: React.FC<ConfirmQuitModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xl animate-fade-in">
       <div 
-        className="relative w-full max-w-sm rounded-3xl bg-zinc-900 border border-zinc-800 p-6 shadow-2xl space-y-4 animate-scale-up text-center"
+        className="relative w-full max-w-sm rounded-[30px] bg-[#121217]/95 backdrop-blur-2xl border border-white/[0.08] p-6 shadow-2xl space-y-4 animate-scale-up text-center"
         role="dialog"
         aria-modal="true"
         aria-labelledby="quit-modal-title"

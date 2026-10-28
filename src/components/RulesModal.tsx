@@ -28,7 +28,7 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-black/75 backdrop-blur-xl animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           sound.playTap();
@@ -36,13 +36,13 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
         }
       }}
     >
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-lg p-5 sm:p-6 text-zinc-100 shadow-2xl overflow-y-auto max-h-[90vh] flex flex-col space-y-4 animate-scale-up">
+      <div className="bg-[#121217]/90 backdrop-blur-2xl border border-white/[0.08] rounded-[30px] w-full max-w-lg p-5 sm:p-6 text-zinc-100 shadow-2xl overflow-y-auto max-h-[90vh] flex flex-col space-y-4 animate-scale-up">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+        <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.06]">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-rose-500/30 flex items-center justify-center shadow-md shadow-rose-950/60">
-              <ParCoeurLogo size={26} />
+            <div className="w-9 h-9 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shadow-md">
+              <ParCoeurLogo size={24} />
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-display font-bold text-white flex items-center gap-1.5">

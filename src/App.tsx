@@ -653,7 +653,14 @@ export default function App() {
     : stage;
 
   return (
-    <div className={`h-[100dvh] max-h-[100dvh] flex flex-col bg-zinc-950 text-zinc-100 selection:bg-rose-500 selection:text-white ${isQuestionPhase ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+    <div className={`h-[100dvh] max-h-[100dvh] flex flex-col bg-[#0b0b0c] text-zinc-100 selection:bg-rose-500 selection:text-white relative ${isQuestionPhase ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+      {/* Ambient Sensual Glow Background Mesh */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[540px] h-[340px] bg-gradient-to-b from-rose-600/15 via-rose-950/10 to-transparent rounded-full blur-[100px] opacity-80" />
+        <div className="absolute top-1/3 -left-28 w-[320px] h-[320px] bg-gradient-to-tr from-amber-600/10 via-rose-600/10 to-transparent rounded-full blur-[90px] opacity-60" />
+        <div className="absolute bottom-10 -right-28 w-[340px] h-[340px] bg-gradient-to-tl from-rose-500/15 via-pink-900/10 to-transparent rounded-full blur-[100px] opacity-70" />
+      </div>
+
       {/* Top Header Bar */}
       <TopNav
         soundEnabled={soundEnabled}

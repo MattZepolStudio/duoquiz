@@ -3,11 +3,14 @@
 @layer base {
   :root {
     --font-display: 'Outfit', sans-serif;
-    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --background: #0b0b0c;
   }
 
   body {
     font-family: var(--font-sans);
+    background-color: var(--background);
+    color: #f4f4f5;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
     overscroll-behavior-y: none;
@@ -15,6 +18,7 @@
 
   h1, h2, h3, .font-display {
     font-family: var(--font-display);
+    letter-spacing: -0.025em;
   }
 }
 
@@ -26,7 +30,7 @@
   padding-top: max(0.75rem, env(safe-area-inset-top));
 }
 
-/* Custom scrollbar for mobile drawers */
+/* Custom scrollbar for mobile */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -35,8 +39,71 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
+}
+
+/* Apple iOS Glassmorphism & UI System */
+.ios-glass {
+  background: rgba(18, 18, 22, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+.ios-glass-interactive {
+  background: rgba(20, 20, 26, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.ios-glass-interactive:hover {
+  background: rgba(26, 26, 34, 0.7);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.ios-glass-glow {
+  background: rgba(22, 18, 26, 0.7);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  box-shadow: 0 12px 36px -10px rgba(244, 63, 94, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Shimmer Light Sheen Sweep Effect for CTA Buttons */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  50%, 100% {
+    transform: translateX(180%) skewX(-20deg);
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 100%
+  );
+  animation: shimmer 3s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
 }
 
 /* 3D Card Flip utilities */
@@ -54,15 +121,15 @@
   transform: rotateY(180deg);
 }
 
-/* Keyframes for Playful Reveal Animations */
+/* Reveal & Playful Animations */
 @keyframes gentle-shake {
   0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-5px); }
-  40%, 80% { transform: translateX(5px); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
 }
 
 .animate-gentle-shake {
-  animation: gentle-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  animation: gentle-shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 @keyframes heart-float {
@@ -88,21 +155,17 @@
   animation: heart-float 1.8s ease-out forwards;
 }
 
-@keyframes shockwave {
-  0% {
-    transform: scale(0.96);
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
-  }
-  60% {
-    transform: scale(1.02);
-    box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
-  }
-  100% {
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+  50% {
+    opacity: 0.88;
+    transform: scale(1.015);
   }
 }
 
-.animate-shockwave {
-  animation: shockwave 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+.animate-pulse-soft {
+  animation: pulse-soft 2.5s infinite ease-in-out;
 }
