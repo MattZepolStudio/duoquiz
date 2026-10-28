@@ -7,9 +7,10 @@ interface ParCoeurLogoProps {
 }
 
 /**
- * Option 2: Le Double Cœur Décalé (Style App Store / iOS)
- * Deux cœurs épurés, modernes et géométriques qui se superposent
- * avec un jeu de transparence élégant (Rose Électrique & Corail Lumineux).
+ * Option 2 Affinée : Le Double Cœur Décalé (Style App Store / iOS)
+ * - Deux cœurs aux teintes distinctes : Ambre Solaire/Corail chaud & Rose Baie/Magenta électrique.
+ * - Découpe nette pour que les deux cœurs soient immédiatement identifiables au premier coup d'œil.
+ * - Point blanc supprimé selon la demande.
  */
 export const ParCoeurLogo: React.FC<ParCoeurLogoProps> = ({
   className = '',
@@ -29,22 +30,22 @@ export const ParCoeurLogo: React.FC<ParCoeurLogoProps> = ({
       aria-label="Logo ParCœur"
     >
       <defs>
-        {/* Dégradé Cœur 1 : Corail Pêche Chaleureux */}
+        {/* Cœur 1 : Ambre Doré & Corail Chaleureux (très distinct, éclat solaire) */}
         <linearGradient
-          id={`coral-${id}`}
+          id={`amber-coral-${id}`}
           x1="0%"
           y1="0%"
           x2="100%"
           y2="100%"
         >
-          <stop offset="0%" stopColor="#fb923c" />
-          <stop offset="60%" stopColor="#f43f5e" />
-          <stop offset="100%" stopColor="#e11d48" />
+          <stop offset="0%" stopColor="#f59e0b" />
+          <stop offset="55%" stopColor="#f97316" />
+          <stop offset="100%" stopColor="#f43f5e" />
         </linearGradient>
 
-        {/* Dégradé Cœur 2 : Rose Framboise Électrique */}
+        {/* Cœur 2 : Rose Framboise & Magenta Électrique (profond et romantique) */}
         <linearGradient
-          id={`rose-${id}`}
+          id={`magenta-rose-${id}`}
           x1="0%"
           y1="0%"
           x2="100%"
@@ -55,38 +56,37 @@ export const ParCoeurLogo: React.FC<ParCoeurLogoProps> = ({
           <stop offset="100%" stopColor="#be123c" />
         </linearGradient>
 
-        {/* Ombre portée douce et nette style app iOS */}
+        {/* Ombre portée douce */}
         <filter id={`shadow-${id}`} x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="3" stdDeviation="3.5" floodColor="#000000" floodOpacity="0.3" />
+          <feDropShadow dx="0" dy="2.5" stdDeviation="3" floodColor="#000000" floodOpacity="0.4" />
         </filter>
       </defs>
 
-      {/* Cœur 1 (Partenaire gauche - Corail / Rose chaud) */}
+      {/* Cœur 1 (Gauche - Ambre Doré & Corail) */}
       <g
-        transform="translate(42, 47) rotate(-14) scale(0.65) translate(-50, -50)"
+        transform="translate(36, 48) rotate(-16) scale(0.66) translate(-50, -50)"
         filter={`url(#shadow-${id})`}
       >
         <path
-          d="M 50,30 C 50,20 40,14 30,14 C 18,14 10,23 10,37 C 10,54 30,68 50,86 C 70,68 90,54 90,37 C 90,23 82,14 70,14 C 60,14 50,20 50,30 Z"
-          fill={`url(#coral-${id})`}
-          opacity="0.9"
+          d="M 50,30 C 50,19 40,13 30,13 C 18,13 10,22 10,36 C 10,54 30,69 50,87 C 70,69 90,54 90,36 C 90,22 82,13 70,13 C 60,13 50,19 50,30 Z"
+          fill={`url(#amber-coral-${id})`}
         />
       </g>
 
-      {/* Cœur 2 (Partenaire droit - Rose / Framboise) superposé */}
+      {/* Cœur 2 (Droit - Rose Framboise & Magenta) 
+          Un fin contour sombre sépare nettement les deux formes pour une lisibilité parfaite */}
       <g
-        transform="translate(58, 53) rotate(14) scale(0.65) translate(-50, -50)"
+        transform="translate(64, 52) rotate(16) scale(0.66) translate(-50, -50)"
         filter={`url(#shadow-${id})`}
       >
         <path
-          d="M 50,30 C 50,20 40,14 30,14 C 18,14 10,23 10,37 C 10,54 30,68 50,86 C 70,68 90,54 90,37 C 90,23 82,14 70,14 C 60,14 50,20 50,30 Z"
-          fill={`url(#rose-${id})`}
-          opacity="0.92"
+          d="M 50,30 C 50,19 40,13 30,13 C 18,13 10,22 10,36 C 10,54 30,69 50,87 C 70,69 90,54 90,36 C 90,22 82,13 70,13 C 60,13 50,19 50,30 Z"
+          fill={`url(#magenta-rose-${id})`}
+          stroke="#18181b"
+          strokeWidth="3.5"
+          strokeLinejoin="round"
         />
       </g>
-
-      {/* Point de contact / étincelle subtile à l'intersection */}
-      <circle cx="50" cy="50" r="2.5" fill="#ffffff" opacity="0.9" />
     </svg>
   );
 
