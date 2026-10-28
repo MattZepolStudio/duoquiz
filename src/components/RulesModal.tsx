@@ -14,6 +14,7 @@ import {
   Check
 } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { ParCoeurLogo } from './ParCoeurLogo';
 
 interface RulesModalProps {
   isOpen: boolean;
@@ -40,13 +41,13 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-md shadow-rose-950/60">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-rose-500/30 flex items-center justify-center shadow-md shadow-rose-950/60">
+              <ParCoeurLogo size={26} />
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-display font-bold text-white flex items-center gap-1.5">
                 <span>Règles de</span>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-pink-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300">
                   ParCœur
                 </span>
               </h3>

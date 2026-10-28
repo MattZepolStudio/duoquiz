@@ -22,6 +22,7 @@ import confetti from 'canvas-confetti';
 import { CategoryId, DifficultyLevel, Player } from '../types/quiz';
 import { CATEGORIES, AVATAR_OPTIONS, INITIAL_QUESTIONS } from '../data/questions';
 import { sound } from '../utils/audio';
+import { ParCoeurLogo } from './ParCoeurLogo';
 
 interface MainMenuProps {
   player1: Player;
@@ -142,11 +143,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   return (
     <div className="flex flex-col gap-6 pb-10 pt-2 max-w-lg mx-auto w-full px-4 animate-fade-in">
       {/* Hero Welcome Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-950/60 via-zinc-900 to-zinc-900 border border-rose-500/20 p-5 text-center shadow-xl">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-950/60 via-zinc-900 to-zinc-900 border border-rose-500/20 p-5 sm:p-6 text-center shadow-xl">
         <div className="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/20 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-28 h-28 bg-pink-500/15 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col items-center">
+          {/* Logo Badge Concept 1 */}
+          <div className="mb-3">
+            <ParCoeurLogo variant="badge" size={44} />
+          </div>
+
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold mb-2">
             <Heart className="w-3.5 h-3.5 fill-rose-400 text-rose-400" />
             <span>Quiz de complicité & secrets</span>
@@ -154,7 +160,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
           <h1 className="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
             Vous connaissez-vous <br />
-            <span className="bg-gradient-to-r from-rose-400 to-pink-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300 bg-clip-text text-transparent">
               vraiment par cœur ?
             </span>
           </h1>

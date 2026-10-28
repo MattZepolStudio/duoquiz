@@ -1,6 +1,7 @@
 import React from 'react';
-import { Volume2, VolumeX, Sparkles, HelpCircle } from 'lucide-react';
+import { Volume2, VolumeX, HelpCircle } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { ParCoeurLogo } from './ParCoeurLogo';
 
 interface TopNavProps {
   soundEnabled: boolean;
@@ -36,18 +37,18 @@ export const TopNav: React.FC<TopNavProps> = ({
             onRequestQuit();
           }
         }}
-        className={`group flex items-center gap-2 text-left transition-all ${
+        className={`group flex items-center gap-2.5 text-left transition-all ${
           inGame ? 'cursor-pointer hover:opacity-90 active:scale-95' : 'cursor-default'
         }`}
         title={inGame ? 'Retourner au menu' : undefined}
         aria-label={inGame ? 'Retourner au menu principal' : 'ParCœur'}
       >
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-md shadow-rose-950/50 group-hover:shadow-rose-900/60 transition-shadow">
-          <Sparkles className="w-4 h-4 text-white" />
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-rose-500/30 flex items-center justify-center shadow-md shadow-rose-950/50 group-hover:border-rose-400/60 transition-all">
+          <ParCoeurLogo size={24} />
         </div>
         <div className="flex flex-col">
           <span className="font-display font-bold text-lg tracking-tight text-white leading-none">
-            Par<span className="text-rose-400">Cœur</span>
+            Par<span className="bg-gradient-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent">Cœur</span>
           </span>
           {inGame && (
             <span className="text-[10px] text-zinc-400 group-hover:text-rose-300 transition-colors font-medium">
