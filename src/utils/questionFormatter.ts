@@ -1,6 +1,83 @@
 import { Question } from '../types/quiz';
 
 /**
+ * Universal French grammar sanitizer that eliminates pleonasms,
+ * contracts "de le" -> "du", "à le" -> "au", "de les" -> "des", "à les" -> "aux",
+ * and removes awkward repetitive formulations.
+ */
+export function sanitizeFrenchGrammar(text: string): string {
+  if (!text) return '';
+  let res = text;
+
+  // 1. Souvenirs pleonasms & repetitions
+  res = res.replace(/Quel souvenir (gardes-tu|gardez-vous|retient(?:-il\/-?elle)?|garde(?:-t-il\/-?elle)?) de (?:le|du) souvenir (de |d'|d’|du |des )/gi, 'Quel souvenir $1 $2');
+  res = res.replace(/Quel souvenir (marquant|brûlant|émouvant|inoubliable) de (?:le|du) souvenir (de |d'|d’|du |des )/gi, 'Quel souvenir $1 $2');
+  res = res.replace(/de (?:le|du) souvenir (d'|d’)/gi, '$1');
+  res = res.replace(/de (?:le|du) souvenir de la /gi, 'de la ');
+  res = res.replace(/de (?:le|du) souvenir (?:de l'|de l’)/gi, "de l'");
+  res = res.replace(/de (?:le|du) souvenir du /gi, 'du ');
+  res = res.replace(/de (?:le|du) souvenir des /gi, 'des ');
+  res = res.replace(/de (?:le|du) souvenir de /gi, 'de ');
+  res = res.replace(/de (?:le|du) souvenir le plus /gi, 'du moment le plus ');
+
+  // 2. Fantasmes pleonasms & contractions
+  res = res.replace(/Quel fantasme ou audace (associes-tu|associez-vous) à (?:le|au) fantasme (?:d'|d’)un\b/gi, 'Quel fantasme ou audace $1 à un');
+  res = res.replace(/Quel fantasme ou audace (associes-tu|associez-vous) à (?:le|au) fantasme (?:d'|d’)une\b/gi, 'Quel fantasme ou audace $1 à une');
+  res = res.replace(/Quel fantasme ou audace (associes-tu|associez-vous) à (?:le|au) fantasme de /gi, "Quel fantasme ou audace $1 à l'idée de ");
+  res = res.replace(/à (?:le|au) fantasme (?:d'|d’)un\b/gi, 'à un');
+  res = res.replace(/à (?:le|au) fantasme (?:d'|d’)une\b/gi, 'à une');
+  res = res.replace(/à (?:le|au) fantasme de /gi, "à l'idée de ");
+  res = res.replace(/pour (?:le|au) fantasme (?:d'|d’)un\b/gi, 'pour un');
+  res = res.replace(/pour (?:le|au) fantasme (?:d'|d’)une\b/gi, 'pour une');
+  res = res.replace(/pour (?:le|au) fantasme de baignade/gi, 'pour une baignade');
+  res = res.replace(/pour (?:le|au) fantasme de /gi, "à l'idée de ");
+  res = res.replace(/\b(associes-tu|associez-vous|associe(?:-t-il\/-?elle)?) à le /gi, '$1 au ');
+  res = res.replace(/\bvision de le /gi, 'vision du ');
+
+  // 3. Quotidien gestion pleonasms
+  res = res.replace(/Comment g[éè]r(ez-vous|es-tu) la gestion (des|du|de la|de l'|de l’)/gi, (m, ending, art) => {
+    const artMap: Record<string, string> = { 'des': 'les', 'du': 'le', 'de la': 'la', "de l'": "l'", 'de l’': 'l’' };
+    return `Comment gér${ending} ${artMap[art.toLowerCase()] || art}`;
+  });
+  res = res.replace(/comment (.*?) gère-t-il\/elle la gestion (des|du|de la|de l'|de l’)/gi, (m, target, art) => {
+    const artMap: Record<string, string> = { 'des': 'les', 'du': 'le', 'de la': 'la', "de l'": "l'", 'de l’': 'l’' };
+    return `comment ${target} gère-t-il/elle ${artMap[art.toLowerCase()] || art}`;
+  });
+  res = res.replace(/au quotidien au quotidien/gi, 'au quotidien');
+
+  // 4. Repeated "son partenaire avec {partner}" in target questions
+  res = res.replace(/partagé avec son partenaire avec \{partner\}/gi, 'partagé avec {partner}');
+  res = res.replace(/chez son partenaire dans ton intimité avec \{partner\}/gi, 'chez {partner} dans ton intimité');
+  res = res.replace(/accueillir son partenaire le soir dans ton intimité avec \{partner\}/gi, 'accueillir {partner} le soir dans votre intimité');
+  res = res.replace(/inédite de son partenaire avec \{partner\}/gi, 'inédite de la part de {partner}');
+  res = res.replace(/cuisiné par son partenaire avec \{partner\}/gi, 'cuisiné avec amour par {partner}');
+  res = res.replace(/embrasser son partenaire pour lui dire 'je te désire' avec \{partner\}/gi, "embrasser {partner} pour lui dire 'je te désire'");
+  res = res.replace(/soutenir un rêve un peu fou de son partenaire avec \{partner\}/gi, 'soutenir un rêve un peu fou de {partner}');
+  res = res.replace(/manifester son admiration envers son partenaire avec \{partner\}/gi, 'manifester ton admiration envers {partner}');
+  res = res.replace(/féliciter son partenaire pour une victoire personnelle avec \{partner\}/gi, 'féliciter {partner} pour une victoire personnelle');
+  res = res.replace(/quand son partenaire prend l'initiative de façon fougueuse avec \{partner\}/gi, "quand {partner} prend l'initiative de façon fougueuse");
+  res = res.replace(/ce qui le\/la fait instantanément craquer chez son partenaire avec \{partner\}/gi, 'ce qui te fait instantanément craquer chez {partner}');
+  res = res.replace(/célébrer la sensualité de son partenaire avec \{partner\}/gi, 'célébrer la sensualité de {partner}');
+  res = res.replace(/admirer son partenaire nu\(e\) sans tabou avec \{partner\}/gi, 'admirer {partner} nu(e) sans tabou');
+  res = res.replace(/réconforter son partenaire par la tendresse charnelle avec \{partner\}/gi, 'réconforter {partner} par la tendresse charnelle');
+
+  // 5. French contractions: "de le" -> "du", "de les" -> "des", "à le" -> "au", "à les" -> "aux"
+  res = res.replace(/\b(gardes-tu|gardez-vous|retient|garde|marquant|brûlant|émouvant) de le /gi, '$1 du ');
+  res = res.replace(/\b(gardes-tu|gardez-vous) de les /gi, '$1 des ');
+  res = res.replace(/\bface à le /gi, 'face au ');
+  res = res.replace(/\bface à les /gi, 'face aux ');
+  res = res.replace(/\blié(e?s?) à le /gi, 'lié$1 au ');
+  res = res.replace(/\blié(e?s?) à les /gi, 'lié$1 aux ');
+  res = res.replace(/\bgrâce à le /gi, 'grâce au ');
+  res = res.replace(/\bgrâce à les /gi, 'grâce aux ');
+  res = res.replace(/\bde le (premier|première|deuxième|baiser|câlin|regard|rôle|lieu|massage|rythme|moment|sentiment|lit|soir|matin|week-end)\b/gi, (m, word) => {
+    return word === 'première' ? 'de la première' : `du ${word}`;
+  });
+
+  return res;
+}
+
+/**
  * Formats question text dynamically based on who is viewing / answering:
  * - 'target' : the player answering about themselves (e.g. Lucas answering his secret answer)
  * - 'guesser' : the player guessing their partner's answer (e.g. Julie guessing what Lucas chose)
@@ -143,7 +220,7 @@ export function getFormattedQuestion(
       .replace(/\s{2,}/g, ' ')
       .trim();
 
-    return text;
+    return sanitizeFrenchGrammar(text);
   }
 
   // =========================================================================
@@ -222,5 +299,5 @@ export function getFormattedQuestion(
     .replace(/\s{2,}/g, ' ')
     .trim();
 
-  return raw;
+  return sanitizeFrenchGrammar(raw);
 }
