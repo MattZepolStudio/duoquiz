@@ -774,6 +774,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                     type="button"
                     onClick={() => {
                       sound.playTap();
+                      sound.hapticSelection();
                       if (isCoquin && !isSelected && !showNsfwNotice) {
                         setShowNsfwNotice(true);
                       }

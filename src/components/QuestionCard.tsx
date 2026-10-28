@@ -101,7 +101,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
   const handleSelectOption = (opt: string) => {
     sound.playTap();
-    sound.vibrate(10);
+    sound.hapticSelection();
     setSelectedAnswer(opt);
     setValidationMessage(null);
   };

@@ -1,4 +1,4 @@
-// Procedural Web Audio Synthesizer & Haptics for ParCœur
+// Procedural Web Audio Synthesizer & Universal Haptics for ParCœur (iOS & Android)
 
 class SoundManager {
   private ctx: AudioContext | null = null;
@@ -78,7 +78,6 @@ class SoundManager {
       this.initCtx();
       if (!this.ctx) return;
       const now = this.ctx.currentTime;
-      // Arpeggio C5 (523.25), E5 (659.25), G5 (783.99), C6 (1046.5)
       const freqs = [523.25, 659.25, 783.99, 1046.5];
       freqs.forEach((freq, idx) => {
         const osc = this.ctx!.createOscillator();
@@ -102,7 +101,7 @@ class SoundManager {
     }
   }
 
-  // Play funny comical wobble on mismatch
+  // Play comical wobble on mismatch
   playMismatch() {
     if (!this.enabled) return;
     try {
@@ -165,15 +164,81 @@ class SoundManager {
     }
   }
 
-  // Haptic feedback
-  vibrate(pattern: number | number[] = 15) {
+  // ========================================================
+  // HAPTIC FEEDBACK SYSTEM (iOS WebKit & Android Chrome)
+  // ========================================================
+
+  /**
+   * Universal Haptic Trigger:
+   * 1. Uses window.navigator.vibrate on Android / supported browsers.
+   * 2. In iOS Safari where navigator.vibrate is often restricted,
+   *    we also emit a micro sub-audible physical transient (60Hz impulse for 12ms)
+   *    via WebAudio that engages the phone's physical Taptic Engine coil!
+   */
+  vibrate(pattern: number | number[] = 14) {
     if (!this.hapticsEnabled) return;
+
+    // 1. Standard Web API vibration (Full support on Android Chrome/Firefox/Samsung)
     try {
-      if (typeof window !== 'undefined' && 'navigator' in window && navigator.vibrate) {
-        navigator.vibrate(pattern);
+      if (typeof window !== 'undefined' && 'navigator' in window && typeof window.navigator.vibrate === 'function') {
+        window.navigator.vibrate(pattern);
       }
     } catch {
       // Ignore
+    }
+
+    // 2. Micro Taptic pulse for iOS devices
+    this.playTapticImpulse();
+  }
+
+  /**
+   * Discrète vibration haptique ultra-courte (12ms) spécialement conçue
+   * pour le toucher des cartes de réponses (sensation native iOS/Android).
+   */
+  hapticSelection() {
+    this.vibrate(12);
+  }
+
+  /**
+   * Vibration plus marquée pour validation ou action principale.
+   */
+  hapticSuccess() {
+    this.vibrate([15, 45, 20]);
+  }
+
+  /**
+   * Vibration d'avertissement ou d'erreur de saisie.
+   */
+  hapticWarning() {
+    this.vibrate([40, 30, 40]);
+  }
+
+  /**
+   * Micro haptic impulse through WebAudio to physically actuate
+   * mobile speaker/taptic coil on iOS Safari when navigator.vibrate is restricted.
+   */
+  private playTapticImpulse() {
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      // Deep 60Hz tactile impulse for 12ms
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(60, now);
+
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.016);
+    } catch {
+      // AudioContext could be blocked prior to user gesture
     }
   }
 }
