@@ -350,23 +350,24 @@ export const GameSummary: React.FC<GameSummaryProps> = ({
                 key={idx}
                 className="p-3 rounded-2xl bg-black/35 border border-white/[0.06] flex items-start justify-between gap-3"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className="text-zinc-500 font-mono font-bold">
+                <div className="space-y-1.5 min-w-0 flex-1">
+                  <div className="flex items-start gap-1.5 text-xs">
+                    <span className="text-zinc-500 font-mono font-bold shrink-0 mt-0.5">
                       #{idx + 1}
                     </span>
-                    <span className="font-semibold text-zinc-200">
+                    <span className="font-semibold text-zinc-200 leading-snug">
                       {getFormattedQuestion(item.question, 'reveal', item.targetPlayer.name, item.guesserPlayer.name)}
                     </span>
                   </div>
-                  <div className="text-[11px] text-zinc-400 flex flex-wrap gap-2">
-                    <span>
-                      <strong className="text-rose-300">{item.targetPlayer.name} :</strong> « {item.targetAnswer} »
-                    </span>
-                    <span>·</span>
-                    <span>
-                      <strong className="text-amber-300">{item.guesserPlayer.name} :</strong> « {item.guesserAnswer} »
-                    </span>
+                  <div className="space-y-1 pt-0.5 text-[11px]">
+                    <div className="flex items-start gap-1.5 leading-snug">
+                      <span className="font-bold text-rose-300 shrink-0">{item.targetPlayer.name} :</span>
+                      <span className="text-zinc-300 break-words">« {item.targetAnswer} »</span>
+                    </div>
+                    <div className="flex items-start gap-1.5 leading-snug">
+                      <span className="font-bold text-amber-300 shrink-0">{item.guesserPlayer.name} :</span>
+                      <span className="text-zinc-300 break-words">« {item.guesserAnswer} »</span>
+                    </div>
                   </div>
                 </div>
 

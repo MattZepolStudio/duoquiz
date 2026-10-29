@@ -206,19 +206,24 @@ export const ScoreOverviewModal: React.FC<ScoreOverviewModalProps> = ({
                 return (
                   <div 
                     key={idx}
-                    className="p-2.5 rounded-xl bg-black/40 border border-white/[0.06] flex items-center justify-between gap-2.5 text-xs"
+                    className="p-2.5 rounded-xl bg-black/40 border border-white/[0.06] flex items-start justify-between gap-2.5 text-xs"
                   >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 font-semibold text-zinc-200 truncate">
-                        <span className="text-[10px] text-zinc-500 font-mono">#{idx + 1}</span>
-                        <span className="truncate">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-start gap-1.5 font-semibold text-zinc-200">
+                        <span className="text-[10px] text-zinc-500 font-mono shrink-0 mt-0.5">#{idx + 1}</span>
+                        <span className="leading-snug">
                           {getFormattedQuestion(item.question, 'reveal', item.targetPlayer.name, item.guesserPlayer.name)}
                         </span>
                       </div>
-                      <div className="text-[10px] text-zinc-400 flex items-center gap-2 mt-0.5 truncate">
-                        <span>{item.targetPlayer.name}: « {item.targetAnswer} »</span>
-                        <span>·</span>
-                        <span>{item.guesserPlayer.name}: « {item.guesserAnswer} »</span>
+                      <div className="space-y-0.5 text-[10px] text-zinc-400 pt-0.5">
+                        <div className="flex items-start gap-1.5 leading-snug">
+                          <span className="font-bold text-rose-300 shrink-0">{item.targetPlayer.name} :</span>
+                          <span className="text-zinc-300 break-words">« {item.targetAnswer} »</span>
+                        </div>
+                        <div className="flex items-start gap-1.5 leading-snug">
+                          <span className="font-bold text-amber-300 shrink-0">{item.guesserPlayer.name} :</span>
+                          <span className="text-zinc-300 break-words">« {item.guesserAnswer} »</span>
+                        </div>
                       </div>
                     </div>
 
