@@ -23,6 +23,7 @@ import { RevealCard } from './components/RevealCard';
 import { RoundSwitchScreen } from './components/RoundSwitchScreen';
 import { GameSummary } from './components/GameSummary';
 import { ConfirmQuitModal } from './components/ConfirmQuitModal';
+import { ScoreOverviewModal } from './components/ScoreOverviewModal';
 import { useMultiplayer } from './utils/useMultiplayer';
 import { MultiplayerSetupScreen } from './components/MultiplayerSetupScreen';
 import { MultiplayerWaitingScreen } from './components/MultiplayerWaitingScreen';
@@ -34,6 +35,7 @@ export default function App() {
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
   const [isQuitModalOpen, setIsQuitModalOpen] = useState<boolean>(false);
+  const [isScoreOverviewOpen, setIsScoreOverviewOpen] = useState<boolean>(false);
 
   // Players state with local storage persistence
   const [player1, setPlayer1] = useState<Player>(() => {
@@ -667,6 +669,7 @@ export default function App() {
         onToggleSound={toggleSound}
         onRequestQuit={handleRequestQuit}
         onOpenHelp={() => setIsRulesOpen(true)}
+        onOpenScoreSheet={() => setIsScoreOverviewOpen(true)}
         currentManche={
           isMultiActive
             ? multi.roomState?.stage !== 'summary'
@@ -1100,6 +1103,54 @@ export default function App() {
         isOpen={isQuitModalOpen}
         onClose={() => setIsQuitModalOpen(false)}
         onConfirmQuit={handleConfirmQuit}
+      />
+
+      {/* Live Score Dashboard & Round Tracker Modal */}
+      <ScoreOverviewModal
+        isOpen={isScoreOverviewOpen}
+        onClose={() => setIsScoreOverviewOpen(false)}
+        player1={isMultiActive && multi.roomState?.player1 ? multi.roomState.player1 : player1}
+        player2={isMultiActive && multi.roomState?.player2 ? multi.roomState.player2 : player2}
+        currentManche={
+          isMultiActive
+            ? multi.roomState?.currentManche
+            : currentManche
+        }
+        currentRound={
+          isMultiActive
+            ? multi.roomState?.stage === 'p1_series'
+              ? multi.isTarget
+                ? currentQuestionIndex + 1
+                : Math.min(multi.roomState?.totalQuestions || 5, (multi.roomState?.p1AnsweredCount || 0) + 1)
+              : (multi.roomState?.currentQuestionIndex || 0) + 1
+            : currentQuestionIndex + 1
+        }
+        totalRounds={
+          isMultiActive
+            ? multi.roomState?.totalQuestions
+            : gameQuestions.length > 0
+            ? gameQuestions.length
+            : questionCount
+        }
+        targetPlayer={
+          isMultiActive
+            ? (multi.roomState?.currentManche || 1) % 2 === 1
+              ? multi.roomState?.player1 || player1
+              : multi.roomState?.player2 || player2
+            : targetPlayer
+        }
+        guesserPlayer={
+          isMultiActive
+            ? (multi.roomState?.currentManche || 1) % 2 === 1
+              ? multi.roomState?.player2 || player2
+              : multi.roomState?.player1 || player1
+            : guesserPlayer
+        }
+        history={isMultiActive ? (multi.roomState?.cumulativeHistory || []) : cumulativeHistory}
+        isMultiplayer={isMultiActive}
+        multiplayerCode={multi.roomState?.code}
+        onOpenRules={() => setIsRulesOpen(true)}
+        onRequestQuit={handleRequestQuit}
       />
     </div>
   );

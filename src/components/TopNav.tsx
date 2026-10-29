@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, VolumeX, HelpCircle } from 'lucide-react';
+import { Volume2, VolumeX, HelpCircle, ChevronDown } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { ParCoeurLogo } from './ParCoeurLogo';
 
@@ -8,6 +8,7 @@ interface TopNavProps {
   onToggleSound: () => void;
   onRequestQuit?: () => void;
   onOpenHelp: () => void;
+  onOpenScoreSheet?: () => void;
   currentRound?: number;
   totalRounds?: number;
   currentManche?: number;
@@ -20,6 +21,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   onToggleSound,
   onRequestQuit,
   onOpenHelp,
+  onOpenScoreSheet,
   currentRound,
   totalRounds,
   currentManche,
@@ -73,15 +75,26 @@ export const TopNav: React.FC<TopNavProps> = ({
             </div>
           )}
           {inGame && currentRound && (
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.05] rounded-full border border-white/[0.08] text-xs font-semibold text-zinc-300 tabular-nums shadow-sm backdrop-blur-md">
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                sound.hapticSelection();
+                onOpenScoreSheet?.();
+              }}
+              className="group flex items-center gap-1.5 px-3 py-1 bg-white/[0.06] hover:bg-white/[0.12] active:scale-95 rounded-full border border-white/[0.1] hover:border-rose-400/50 text-xs font-semibold text-zinc-200 tabular-nums shadow-sm backdrop-blur-md transition-all cursor-pointer"
+              title="Tableau des scores et suivi de la partie"
+              aria-label="Tableau des scores et suivi"
+            >
               {currentManche && (
                 <span className="text-rose-400 font-bold">M{currentManche} · </span>
               )}
               <span>Q{currentRound}</span>
               {totalRounds && totalRounds < 99 && (
-                <span className="text-zinc-500">/{totalRounds}</span>
+                <span className="text-zinc-400">/{totalRounds}</span>
               )}
-            </div>
+              <ChevronDown className="w-3 h-3 text-zinc-400 group-hover:text-rose-300 transition-colors ml-0.5" />
+            </button>
           )}
         </div>
 
