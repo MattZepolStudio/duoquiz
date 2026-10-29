@@ -97,6 +97,10 @@ export const RevealCard: React.FC<RevealCardProps> = ({
     }
   };
 
+  const scoreAwardedRef = useRef(scoreAwarded);
+  scoreAwardedRef.current = scoreAwarded;
+
+  // Run the card reveal animation sequence ONLY when the question/round changes
   useEffect(() => {
     clearAllTimers();
     setTargetFlipped(false);
@@ -120,7 +124,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
     // 3. Final verdict
     const t3 = setTimeout(() => {
       setEvaluationRevealed(true);
-      if (scoreAwarded) {
+      if (scoreAwardedRef.current) {
         triggerMatchCelebration();
       } else {
         triggerMismatchReaction();
@@ -129,7 +133,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
 
     timersRef.current = [t1, t2, t3];
     return () => clearAllTimers();
-  }, [currentIndex, scoreAwarded]);
+  }, [currentIndex, question.id]);
 
   const displayedQuestionText = getFormattedQuestion(
     question,
