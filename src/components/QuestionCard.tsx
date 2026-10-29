@@ -527,10 +527,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         <button
           type="button"
           onClick={handleNextClick}
-          className={`flex-1 h-14 rounded-2xl font-display font-bold text-sm sm:text-base shadow-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
+          className={`flex-1 h-14 rounded-full font-display font-bold text-sm sm:text-base text-white transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
             selectedAnswer.trim()
-              ? 'bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 text-white shadow-rose-950/60 hover:brightness-105 animate-shimmer cursor-pointer border border-white/20'
-              : 'bg-white/[0.05] text-zinc-500 border border-white/[0.05] cursor-pointer'
+              ? 'btn-sensual-cta animate-shimmer cursor-pointer'
+              : 'bg-white/[0.05] text-zinc-500 border border-white/[0.05] cursor-pointer rounded-full'
           }`}
         >
           <span>{currentIndex === totalCount - 1 ? 'Terminer cette manche' : 'Valider & continuer'}</span>

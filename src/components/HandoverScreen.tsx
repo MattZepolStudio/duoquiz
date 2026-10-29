@@ -80,7 +80,7 @@ export const HandoverScreen: React.FC<HandoverScreenProps> = ({
             sound.vibrate(15);
             onProceed();
           }}
-          className="w-full h-15 rounded-2xl bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 text-white font-display font-bold text-base sm:text-lg shadow-2xl shadow-rose-950/60 hover:brightness-105 transition-all flex items-center justify-center gap-2.5 active:scale-[0.98] animate-shimmer cursor-pointer border border-white/20"
+          className="w-full h-15 rounded-full btn-sensual-cta text-white font-display font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2.5 active:scale-[0.98] animate-shimmer cursor-pointer"
         >
           <Eye className="w-5 h-5" />
           <span>C'est bon, je suis {guesserPlayer.name} !</span>

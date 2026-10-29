@@ -154,10 +154,10 @@ export const RoundSwitchScreen: React.FC<RoundSwitchScreenProps> = ({
             sound.vibrate(20);
             onStartNextManche();
           }}
-          className={`w-full h-15 rounded-2xl font-display font-bold text-base shadow-2xl transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
+          className={`w-full h-15 rounded-full font-display font-bold text-base text-white transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
             isLaunching
-              ? 'bg-white/[0.05] text-zinc-500 cursor-not-allowed border border-white/[0.05]'
-              : 'bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 text-white shadow-rose-950/70 hover:brightness-105 animate-shimmer cursor-pointer border border-white/20'
+              ? 'bg-white/[0.05] text-zinc-500 cursor-not-allowed border border-white/[0.05] rounded-full'
+              : 'btn-sensual-cta animate-shimmer cursor-pointer'
           }`}
         >
           <span>{isLaunching ? 'Lancement...' : `Lancer la manche de ${nextTarget.name}`}</span>

@@ -397,10 +397,10 @@ export const RevealCard: React.FC<RevealCardProps> = ({
             sound.vibrate(15);
             onNextRound();
           }}
-          className={`w-full h-14 rounded-2xl font-display font-bold text-sm sm:text-base shadow-xl transition-all flex items-center justify-center gap-2.5 active:scale-[0.98] ${
+          className={`w-full h-14 rounded-full font-display font-bold text-sm sm:text-base text-white transition-all flex items-center justify-center gap-2.5 active:scale-[0.98] ${
             isAdvancing
-              ? 'bg-white/[0.05] text-zinc-500 cursor-not-allowed border border-white/[0.05]'
-              : 'bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 text-white shadow-rose-950/60 hover:brightness-105 animate-shimmer cursor-pointer border border-white/20'
+              ? 'bg-white/[0.05] text-zinc-500 cursor-not-allowed border border-white/[0.05] rounded-full'
+              : 'btn-sensual-cta animate-shimmer cursor-pointer'
           }`}
         >
           {isLastRound ? (

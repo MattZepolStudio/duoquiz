@@ -106,6 +106,26 @@
   pointer-events: none;
 }
 
+/* Sensual CTA Button with Seamless Gradient, Glow and Smooth Pill Shape */
+.btn-sensual-cta {
+  background: linear-gradient(to right, #be123c 0%, #e11d48 35%, #f43f5e 70%, #fb7185 100%) !important;
+  box-shadow: 0 10px 32px -4px rgba(225, 29, 72, 0.45), 0 0 24px 2px rgba(244, 63, 94, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 9999px !important;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.btn-sensual-cta:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 14px 40px -4px rgba(225, 29, 72, 0.6), 0 0 30px 4px rgba(244, 63, 94, 0.35) !important;
+}
+
+.btn-sensual-cta:active {
+  transform: scale(0.98);
+}
+
 /* 3D Card Flip utilities */
 .perspective-1000 {
   perspective: 1000px;

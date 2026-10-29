@@ -545,10 +545,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               type="button"
               disabled={!canConfirmNames}
               onClick={handleConfirmPlayers}
-              className={`w-full h-14 rounded-2xl font-display font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-xl transition-all active:scale-[0.98] ${
+              className={`w-full h-14 rounded-full font-display font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] ${
                 canConfirmNames
-                  ? 'bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 text-white shadow-rose-950/60 hover:brightness-105 animate-shimmer cursor-pointer border border-white/20'
-                  : 'bg-white/[0.04] text-zinc-500 cursor-not-allowed border border-white/[0.04] opacity-50 pointer-events-none'
+                  ? 'btn-sensual-cta animate-shimmer cursor-pointer'
+                  : 'bg-white/[0.04] text-zinc-500 cursor-not-allowed border border-white/[0.04] opacity-50 pointer-events-none rounded-full'
               }`}
             >
               <Sparkles className="w-4 h-4 text-amber-200 fill-amber-200" />
@@ -895,10 +895,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                 sound.vibrate(25);
                 onStartGame();
               }}
-              className={`w-full h-15 rounded-2xl flex items-center justify-center gap-3 font-display font-bold text-base sm:text-lg shadow-2xl transition-all active:scale-[0.98] ${
+              className={`w-full h-15 rounded-full flex items-center justify-center gap-3 font-display font-bold text-base sm:text-lg text-white transition-all active:scale-[0.98] ${
                 selectedCategories.length === 0
-                  ? 'bg-white/[0.05] text-zinc-500 cursor-not-allowed border border-white/[0.05]'
-                  : 'bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 text-white shadow-rose-950/70 hover:brightness-105 border border-white/20 animate-shimmer cursor-pointer'
+                  ? 'bg-white/[0.05] text-zinc-500 cursor-not-allowed border border-white/[0.05] rounded-full'
+                  : 'btn-sensual-cta animate-shimmer cursor-pointer'
               }`}
             >
               {isLoadingAi ? (
