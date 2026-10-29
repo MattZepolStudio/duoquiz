@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { CategoryId, DifficultyLevel, Player } from '../types/quiz';
 import { RoomConfig, RoomState } from '../types/multiplayer';
+import { AVATAR_OPTIONS } from '../data/questions';
 import { sound } from '../utils/audio';
 import { getPublicRoomUrl, initAppUrl } from '../utils/appUrl';
 
@@ -80,6 +81,7 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
   );
   const [hostName, setHostName] = useState<string>(player1.name || 'Joueur 1');
   const [hostAvatar, setHostAvatar] = useState<string>(player1.avatar || '🦊');
+  const [activeAvatarPicker, setActiveAvatarPicker] = useState<'host' | 'guest' | null>(null);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
@@ -477,16 +479,95 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
           </div>
 
           <div className="p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800 flex items-center gap-3">
-            <span className="text-2xl">{hostAvatar}</span>
-            <input
-              type="text"
-              value={hostName}
-              onChange={(e) => setHostName(e.target.value)}
-              placeholder="Ton prénom"
-              maxLength={15}
-              className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
-            />
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                sound.hapticSelection();
+                setActiveAvatarPicker(activeAvatarPicker === 'host' ? null : 'host');
+              }}
+              className="w-12 h-12 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] hover:border-rose-400/50 flex flex-col items-center justify-center shrink-0 transition-all active:scale-95 shadow-sm group relative"
+              title="Changer d'avatar complice"
+            >
+              <span className="text-2xl transition-transform group-hover:scale-110">{hostAvatar}</span>
+              <span className="text-[8px] font-bold text-zinc-400 group-hover:text-rose-300 uppercase tracking-tighter -mt-0.5">
+                Changer
+              </span>
+            </button>
+            <div className="flex-1 min-w-0">
+              <label className="text-[10px] uppercase font-bold text-zinc-400 block mb-0.5">
+                Ton prénom
+              </label>
+              <input
+                type="text"
+                value={hostName}
+                onChange={(e) => setHostName(e.target.value)}
+                placeholder="Ton prénom"
+                maxLength={15}
+                className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
+              />
+            </div>
           </div>
+
+          {/* Host Avatar Picker Sheet */}
+          {activeAvatarPicker === 'host' && (
+            <div className="p-3.5 rounded-2xl bg-black/70 border border-white/[0.1] space-y-2.5 animate-fade-in backdrop-blur-xl">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Choisis ton avatar d'hôte :</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveAvatarPicker(null)}
+                  className="text-[11px] font-semibold text-zinc-400 hover:text-white px-2 py-0.5 rounded-lg bg-white/[0.05]"
+                >
+                  Fermer ✕
+                </button>
+              </div>
+
+              <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto pr-0.5">
+                {AVATAR_OPTIONS.map((item) => {
+                  const [emoji, ...nameParts] = item.label.split(' ');
+                  const labelName = nameParts.join(' ');
+                  const isSelected = hostAvatar === emoji;
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        sound.playTap();
+                        sound.hapticSelection();
+                        setHostAvatar(emoji);
+                        setActiveAvatarPicker(null);
+                      }}
+                      className={`group relative flex flex-col items-center justify-center p-2 rounded-xl transition-all active:scale-95 border ${
+                        isSelected
+                          ? 'bg-rose-500/25 border-rose-500 ring-2 ring-rose-500/40 shadow-md'
+                          : 'bg-white/[0.03] hover:bg-white/[0.08] border-white/[0.06]'
+                      }`}
+                      title={item.label}
+                    >
+                      {isSelected && (
+                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[8px] font-bold shadow">
+                          ✓
+                        </span>
+                      )}
+                      <span className="text-xl transition-transform group-hover:scale-110">
+                        {emoji}
+                      </span>
+                      <span className={`text-[9px] font-medium mt-0.5 truncate max-w-full ${
+                        isSelected ? 'text-rose-300 font-bold' : 'text-zinc-400'
+                      }`}>
+                        {labelName}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="p-3.5 rounded-2xl bg-zinc-950/60 border border-zinc-800/80 text-xs text-zinc-300 space-y-1">
             <div className="flex items-center gap-2 font-semibold text-rose-300">
@@ -559,20 +640,96 @@ export const MultiplayerSetupScreen: React.FC<MultiplayerSetupScreenProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-zinc-300 uppercase">
-              Ton prénom
-            </label>
             <div className="p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800 flex items-center gap-3">
-              <span className="text-2xl">{guestAvatar}</span>
-              <input
-                type="text"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                placeholder="Ton prénom"
-                maxLength={15}
-                className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
-              />
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playTap();
+                  sound.hapticSelection();
+                  setActiveAvatarPicker(activeAvatarPicker === 'guest' ? null : 'guest');
+                }}
+                className="w-12 h-12 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] hover:border-rose-400/50 flex flex-col items-center justify-center shrink-0 transition-all active:scale-95 shadow-sm group relative"
+                title="Changer d'avatar complice"
+              >
+                <span className="text-2xl transition-transform group-hover:scale-110">{guestAvatar}</span>
+                <span className="text-[8px] font-bold text-zinc-400 group-hover:text-rose-300 uppercase tracking-tighter -mt-0.5">
+                  Changer
+                </span>
+              </button>
+              <div className="flex-1 min-w-0">
+                <label className="text-[10px] uppercase font-bold text-zinc-400 block mb-0.5">
+                  Ton prénom
+                </label>
+                <input
+                  type="text"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Ton prénom"
+                  maxLength={15}
+                  className="w-full bg-transparent font-medium text-white placeholder-zinc-500 text-sm focus:outline-none"
+                />
+              </div>
             </div>
+
+            {/* Guest Avatar Picker Sheet */}
+            {activeAvatarPicker === 'guest' && (
+              <div className="p-3.5 rounded-2xl bg-black/70 border border-white/[0.1] space-y-2.5 animate-fade-in backdrop-blur-xl">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Choisis ton avatar complice :</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveAvatarPicker(null)}
+                    className="text-[11px] font-semibold text-zinc-400 hover:text-white px-2 py-0.5 rounded-lg bg-white/[0.05]"
+                  >
+                    Fermer ✕
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto pr-0.5">
+                  {AVATAR_OPTIONS.map((item) => {
+                    const [emoji, ...nameParts] = item.label.split(' ');
+                    const labelName = nameParts.join(' ');
+                    const isSelected = guestAvatar === emoji;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          sound.playTap();
+                          sound.hapticSelection();
+                          setGuestAvatar(emoji);
+                          setActiveAvatarPicker(null);
+                        }}
+                        className={`group relative flex flex-col items-center justify-center p-2 rounded-xl transition-all active:scale-95 border ${
+                          isSelected
+                            ? 'bg-rose-500/25 border-rose-500 ring-2 ring-rose-500/40 shadow-md'
+                            : 'bg-white/[0.03] hover:bg-white/[0.08] border-white/[0.06]'
+                        }`}
+                        title={item.label}
+                      >
+                        {isSelected && (
+                          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[8px] font-bold shadow">
+                            ✓
+                          </span>
+                        )}
+                        <span className="text-xl transition-transform group-hover:scale-110">
+                          {emoji}
+                        </span>
+                        <span className={`text-[9px] font-medium mt-0.5 truncate max-w-full ${
+                          isSelected ? 'text-rose-300 font-bold' : 'text-zinc-400'
+                        }`}>
+                          {labelName}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <button
