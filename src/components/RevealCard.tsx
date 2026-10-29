@@ -205,10 +205,28 @@ export const RevealCard: React.FC<RevealCardProps> = ({
           />
         </div>
 
-        {/* Question Reminder */}
-        <p className="text-xs sm:text-sm text-zinc-300 font-medium max-w-sm mx-auto pt-0.5 line-clamp-2 italic">
-          « {displayedQuestionText} »
-        </p>
+        {/* Prominent Question Hero Card */}
+        <div className="p-4 sm:p-5 rounded-[24px] ios-glass shadow-xl text-center border border-white/[0.08] relative overflow-hidden">
+          {/* Subtle warm ambient glow behind question */}
+          <div className="absolute top-0 right-1/4 w-32 h-20 bg-rose-500/15 rounded-full blur-2xl pointer-events-none" />
+
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-[10px] font-bold text-rose-300 uppercase tracking-wider">
+              <Sparkles className="w-3 h-3 text-amber-300" />
+              <span>Question {currentIndex + 1}</span>
+            </span>
+
+            {question.category && (
+              <span className="text-[10px] font-semibold text-zinc-400 capitalize px-2 py-0.5 rounded-full bg-black/30 border border-white/[0.06]">
+                {question.category === 'coquin' ? '🔥 Coquin' : question.category}
+              </span>
+            )}
+          </div>
+
+          <h2 className="text-base sm:text-lg md:text-xl font-display font-bold text-white leading-snug tracking-tight">
+            « {displayedQuestionText} »
+          </h2>
+        </div>
       </div>
 
       {/* ========================================================
